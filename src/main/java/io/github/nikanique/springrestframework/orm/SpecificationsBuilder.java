@@ -1,11 +1,11 @@
 package io.github.nikanique.springrestframework.orm;
 
+import jakarta.persistence.EntityManagerFactory;
 import lombok.NoArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 
-import javax.persistence.EntityManagerFactory;
 import java.util.List;
 
 @SuppressWarnings({"rawtypes", "unchecked"})

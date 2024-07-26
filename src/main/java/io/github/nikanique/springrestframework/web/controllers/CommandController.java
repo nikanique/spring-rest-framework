@@ -13,6 +13,8 @@ import io.github.nikanique.springrestframework.swagger.CreateSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.DeleteSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.UpdateSchemaGenerator;
 import io.swagger.v3.oas.models.Operation;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,8 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.HandlerMethod;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;

@@ -4,19 +4,18 @@ package io.github.nikanique.springrestframework.orm;
 import io.github.nikanique.springrestframework.annotation.Expose;
 import io.github.nikanique.springrestframework.annotation.ReadOnly;
 import io.github.nikanique.springrestframework.annotation.ReferencedModel;
-import io.github.nikanique.springrestframework.dto.Dto;
+import io.github.nikanique.springrestframework.dto.DtoManager;
 import io.github.nikanique.springrestframework.dto.FieldMetadata;
+import jakarta.persistence.EntityManager;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.context.ApplicationContext;
 
-import javax.persistence.EntityManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-
 
 public class EntityBuilder<EntityClass> {
 
@@ -37,7 +36,7 @@ public class EntityBuilder<EntityClass> {
     public EntityClass fromDto(Object dto, Class<?> dtoClass) {
         try {
 
-            Map<String, FieldMetadata> fieldMetadata = Dto.getFieldMetadata(dtoClass);
+            Map<String, FieldMetadata> fieldMetadata = DtoManager.getDtoByClassName(dtoClass);
 
 
             // Create an instance of the main entity class

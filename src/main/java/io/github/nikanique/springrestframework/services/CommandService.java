@@ -4,16 +4,16 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.nikanique.springrestframework.annotation.Expose;
 import io.github.nikanique.springrestframework.annotation.ReferencedModel;
-import io.github.nikanique.springrestframework.dto.Dto;
+import io.github.nikanique.springrestframework.dto.DtoManager;
 import io.github.nikanique.springrestframework.dto.FieldMetadata;
 import io.github.nikanique.springrestframework.exceptions.BadRequestException;
+import jakarta.persistence.EntityManager;
 import lombok.Getter;
 import org.springframework.beans.BeanWrapper;
 import org.springframework.beans.BeanWrapperImpl;
 import org.springframework.context.ApplicationContext;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import javax.persistence.EntityManager;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -52,7 +52,7 @@ public class CommandService<EntityClass, ID> {
 
     public EntityClass update(EntityClass entityFromDB, Object dto, String lookupFieldName, Class<?> dtoClass) throws Throwable {
         BeanWrapper entityWrapper = new BeanWrapperImpl(entityFromDB);
-        Map<String, FieldMetadata> fieldsMetadata = Dto.getFieldMetadata(dtoClass);
+        Map<String, FieldMetadata> fieldsMetadata = DtoManager.getDtoByClassName(dtoClass);
         for (Map.Entry<String, FieldMetadata> entry : fieldsMetadata.entrySet()) {
             if (entry.getValue().getGetterMethodHandle() == null) {
                 continue;
@@ -112,7 +112,7 @@ public class CommandService<EntityClass, ID> {
 
     public EntityClass update(EntityClass entityFromDB, Object dto, String lookupFieldName, Class<?> dtoClass, Set<String> fields) throws Throwable {
         BeanWrapper entityWrapper = new BeanWrapperImpl(entityFromDB);
-        Map<String, FieldMetadata> fieldsMetadata = Dto.getFieldMetadata(dtoClass);
+        Map<String, FieldMetadata> fieldsMetadata = DtoManager.getDtoByClassName(dtoClass);
         for (Map.Entry<String, FieldMetadata> entry : fieldsMetadata.entrySet()) {
             if (entry.getValue().getGetterMethodHandle() == null || !fields.contains(entry.getKey()) || entry.getKey().equals(lookupFieldName)) {
                 continue;

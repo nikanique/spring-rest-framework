@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 public class FilterSet {
-    private Set<Filter> filters;
+    private final Set<Filter> filters;
 
     public FilterSet(Set<Filter> filters) {
         this.filters = filters;

@@ -1,14 +1,14 @@
 package io.github.nikanique.springrestframework.orm;
 
 import io.github.nikanique.springrestframework.filter.FilterOperation;
+import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.criteria.*;
+import jakarta.persistence.metamodel.Attribute;
+import jakarta.persistence.metamodel.EntityType;
+import jakarta.persistence.metamodel.Metamodel;
 import lombok.AllArgsConstructor;
 import org.springframework.data.jpa.domain.Specification;
 
-import javax.persistence.EntityManagerFactory;
-import javax.persistence.criteria.*;
-import javax.persistence.metamodel.Attribute;
-import javax.persistence.metamodel.EntityType;
-import javax.persistence.metamodel.Metamodel;
 import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.util.Arrays;

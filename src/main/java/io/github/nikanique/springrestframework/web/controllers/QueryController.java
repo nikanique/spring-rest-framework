@@ -13,6 +13,8 @@ import io.github.nikanique.springrestframework.swagger.ListSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.RetrieveSchemaGenerator;
 import io.github.nikanique.springrestframework.web.responses.PagedResponse;
 import io.swagger.v3.oas.models.Operation;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -24,8 +26,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
