@@ -7,7 +7,6 @@ import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
-import io.github.nikanique.springrestframework.swagger.ListSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.RetrieveSchemaGenerator;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
@@ -26,7 +25,7 @@ import java.util.Optional;
 @Getter
 public abstract class RetrieveController<EntityClass, ID, ModelRepository extends JpaRepository<EntityClass, ID> & JpaSpecificationExecutor<EntityClass>>
         extends BaseGenericController<EntityClass, ID, ModelRepository>
-        implements ListSchemaGenerator, RetrieveSchemaGenerator {
+        implements RetrieveSchemaGenerator {
 
     final private SerializerConfig retrieveSerializerConfig;
     final private Filter lookupFilter;
