@@ -21,7 +21,7 @@ framework.
 
 ## Installation
 
-To install the Spring REST Framework library, include the following dependencies in your project:
+To install the Spring REST Framework, include the following dependencies in your project:
 
 ```xml
 
@@ -102,7 +102,7 @@ To start using the library, follow these steps:
    public class StudentDto {
 
     @Expose(source = "name")
-    private String fullName;
+    private String firstName;
     private Integer age;
     private String color;
    
@@ -138,5 +138,5 @@ This project is licensed under the BSD 3-Clause License.
 
 ## Contact & Issues
 
-If you have any questions or feedback, please contact the author at nikanique.org@gmail.com. Additionally, if you
+For any questions or feedback, please contact the author at nikanique.org@gmail.com. If you
 encounter any problems or bugs with the library, kindly create an issue to report them.
