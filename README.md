@@ -96,10 +96,11 @@ To start using the library, follow these steps:
    ```java
    import io.github.nikanique.springrestframework.annotation.Expose;
    import io.github.nikanique.springrestframework.annotation.ReadOnly;
+   import io.github.nikanique.springrestframework.dto.Dto;
    import lombok.Data;
 
    @Data
-   public class StudentDto {
+   public class StudentDto extends Dto{
 
     @Expose(source = "name")
     private String firstName;
