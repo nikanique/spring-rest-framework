@@ -12,7 +12,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +21,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 @Getter
-public abstract class CreateController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+public abstract class CreateController<Model, ID, ModelRepository extends JpaRepository<Model, ID>>
         extends BaseGenericController<Model, ID, ModelRepository>
         implements CreateSchemaGenerator {
 
@@ -53,7 +52,6 @@ public abstract class CreateController<Model, ID, ModelRepository extends JpaRep
     @PostConstruct
     private void postConstruct() {
         this.commandService = CommandService.getInstance(this.getModel(), this.repository, this.context);
-        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
         this.entityHelper = EntityBuilder.getInstance(this.getModel(), this.context);
     }
 
