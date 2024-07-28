@@ -1,4 +1,4 @@
- <?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -18,7 +18,9 @@
         and flexibility of Django's REST Framework to Spring. SRF streamlines API development with powerful
         serialization, flexible filters, and seamless integration.
     </description>
-    <url>https://github.com/nikanique/spring-rest-framework</url>
+    <url>
+
+    </url>
     <licenses>
         <license>
             <name>BSD License</name>
@@ -71,15 +73,13 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
-
     <distributionManagement>
         <repository>
-            <id>github</id>
-            <name>GitHub Packages</name>
-            <url>https://maven.pkg.github.com/nikanique/spring-rest-framework</url>
+            <id>ossrh</id>
+            <name>Sonatype Nexus Staging</name>
+            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
         </repository>
     </distributionManagement>
-
     <build>
         <plugins>
             <plugin>
@@ -92,14 +92,13 @@
                 <version>1.7.0</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>github</serverId>
-                    <nexusUrl>https://maven.pkg.github.com/</nexusUrl>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-
     <profiles>
         <profile>
             <id>release</id>
@@ -124,14 +123,6 @@
                                 </goals>
                             </execution>
                         </executions>
-                        <configuration>
-                            <gpgArguments>
-                                <arg>--pinentry-mode</arg>
-                                <arg>loopback</arg>
-                            </gpgArguments>
-                            <useAgent>false</useAgent>
-                            <passphrase>${gpg.passphrase}</passphrase> <!-- استفاده از passphrase -->
-                        </configuration>
                     </plugin>
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
