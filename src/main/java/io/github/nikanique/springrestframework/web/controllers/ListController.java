@@ -25,13 +25,13 @@ import java.util.List;
 import java.util.TreeSet;
 
 @Getter
-public abstract class ListController<EntityClass, ID, ModelRepository extends JpaRepository<EntityClass, ID> & JpaSpecificationExecutor<EntityClass>>
-        extends BaseGenericController<EntityClass, ID, ModelRepository>
+public abstract class ListController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+        extends BaseGenericController<Model, ID, ModelRepository>
         implements ListSchemaGenerator {
 
     final private SerializerConfig listSerializerConfig;
     final private FilterSet filterSet;
-    private QueryService<EntityClass> queryService;
+    private QueryService<Model> queryService;
 
     public ListController(ModelRepository repository) {
         super(repository);
@@ -42,7 +42,7 @@ public abstract class ListController<EntityClass, ID, ModelRepository extends Jp
 
     @PostConstruct
     private void postConstruct() {
-        this.queryService = QueryService.getInstance(this.getEntityClass(), this.repository, this.context);
+        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
 
 
@@ -73,7 +73,7 @@ public abstract class ListController<EntityClass, ID, ModelRepository extends Jp
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Page<EntityClass> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortBy);
+        Page<Model> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortBy);
         List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
         PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
         return ResponseEntity.ok(response);

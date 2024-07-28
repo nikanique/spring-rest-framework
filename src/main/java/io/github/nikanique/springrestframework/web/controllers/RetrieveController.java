@@ -23,13 +23,13 @@ import java.util.List;
 import java.util.Optional;
 
 @Getter
-public abstract class RetrieveController<EntityClass, ID, ModelRepository extends JpaRepository<EntityClass, ID> & JpaSpecificationExecutor<EntityClass>>
-        extends BaseGenericController<EntityClass, ID, ModelRepository>
+public abstract class RetrieveController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+        extends BaseGenericController<Model, ID, ModelRepository>
         implements RetrieveSchemaGenerator {
 
     final private SerializerConfig retrieveSerializerConfig;
     final private Filter lookupFilter;
-    private QueryService<EntityClass> queryService;
+    private QueryService<Model> queryService;
 
     public RetrieveController(ModelRepository repository) {
         super(repository);
@@ -40,7 +40,7 @@ public abstract class RetrieveController<EntityClass, ID, ModelRepository extend
 
     @PostConstruct
     private void postConstruct() {
-        this.queryService = QueryService.getInstance(this.getEntityClass(), this.repository, this.context);
+        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
 
 
@@ -68,7 +68,7 @@ public abstract class RetrieveController<EntityClass, ID, ModelRepository extend
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Optional<EntityClass> optionalEntity = queryService.get(searchCriteriaList);
+        Optional<Model> optionalEntity = queryService.get(searchCriteriaList);
         return optionalEntity.map(entity -> ResponseEntity.ok(
                         serializer.serialize(entity, getRetrieveSerializerConfig())
                 ))

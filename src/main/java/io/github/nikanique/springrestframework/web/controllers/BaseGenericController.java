@@ -17,7 +17,7 @@ import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 
-public abstract class BaseGenericController<EntityClass, ID, ModelRepository extends JpaRepository<EntityClass, ID> & JpaSpecificationExecutor<EntityClass>>
+public abstract class BaseGenericController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         implements ApplicationContextAware {
 
     final protected ModelRepository repository;
@@ -41,9 +41,9 @@ public abstract class BaseGenericController<EntityClass, ID, ModelRepository ext
 
     protected abstract Class<?> getDTO();
 
-    protected Class<EntityClass> getEntityClass() {
+    protected Class<Model> getModel() {
         @SuppressWarnings("unchecked")
-        Class<EntityClass> entityClass = (Class<EntityClass>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
+        Class<Model> entityClass = (Class<Model>) ((ParameterizedType) getClass().getGenericSuperclass()).getActualTypeArguments()[0];
         return entityClass;
     }
 

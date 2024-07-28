@@ -18,13 +18,13 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 @AllArgsConstructor
-public class ModelSpecification<EntityClass> implements Specification<EntityClass> {
+public class ModelSpecification<Model> implements Specification<Model> {
 
     private SearchCriteria searchCriteria;
     private EntityManagerFactory entityManagerFactory;
 
     @Override
-    public Predicate toPredicate(Root<EntityClass> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
+    public Predicate toPredicate(Root<Model> root, CriteriaQuery<?> query, CriteriaBuilder builder) {
         Path<?> path = getPath(root, searchCriteria.getKey());
         Class<?> attributeType = path.getJavaType();
         Object value = searchCriteria.getValue();

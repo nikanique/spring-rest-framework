@@ -23,34 +23,34 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Getter
-public class CommandService<EntityClass, ID> {
+public class CommandService<Model, ID> {
     private static final ConcurrentHashMap<Class<?>, CommandService<?, ?>> instances = new ConcurrentHashMap<>();
 
     private final EntityManager entityManager;
     private final ObjectMapper objectMapper;
-    private final JpaRepository<EntityClass, ID> jpaRepository;
+    private final JpaRepository<Model, ID> jpaRepository;
 
-    public CommandService(JpaRepository<EntityClass, ID> jpaRepository, ApplicationContext springContext) {
+    public CommandService(JpaRepository<Model, ID> jpaRepository, ApplicationContext springContext) {
         this.jpaRepository = jpaRepository;
         this.objectMapper = springContext.getBean(ObjectMapper.class);
         this.entityManager = springContext.getBean(EntityManager.class);
     }
 
-    public static <EntityClass, ID> CommandService<EntityClass, ID> getInstance(
-            Class<EntityClass> entityClass,
-            JpaRepository<EntityClass, ID> jpaRepository, ApplicationContext springContext) {
+    public static <Model, ID> CommandService<Model, ID> getInstance(
+            Class<Model> entityClass,
+            JpaRepository<Model, ID> jpaRepository, ApplicationContext springContext) {
 
         //noinspection unchecked
-        return (CommandService<EntityClass, ID>) instances.computeIfAbsent(entityClass, k -> new CommandService<>(jpaRepository, springContext));
+        return (CommandService<Model, ID>) instances.computeIfAbsent(entityClass, k -> new CommandService<>(jpaRepository, springContext));
     }
 
-    public EntityClass create(EntityClass entity) {
+    public Model create(Model entity) {
         entity = jpaRepository.save(entity);
         return entity;
     }
 
 
-    public EntityClass update(EntityClass entityFromDB, Object dto, String lookupFieldName, Class<?> dtoClass) throws Throwable {
+    public Model update(Model entityFromDB, Object dto, String lookupFieldName, Class<?> dtoClass) throws Throwable {
         BeanWrapper entityWrapper = new BeanWrapperImpl(entityFromDB);
         Map<String, FieldMetadata> fieldsMetadata = DtoManager.getDtoByClassName(dtoClass);
         for (Map.Entry<String, FieldMetadata> entry : fieldsMetadata.entrySet()) {
@@ -71,11 +71,11 @@ public class CommandService<EntityClass, ID> {
                     if (referenceModelAnnotation != null) {
                         sourceFieldName = referenceModelAnnotation.referencingField();
                         String referencedModelName = referenceModelAnnotation.model();
-                        Class<?> referencedEntityClass = Class.forName(referencedModelName);
+                        Class<?> referencedModel = Class.forName(referencedModelName);
                         Object idValue = objectMapper.convertValue(entry.getValue().getGetterMethodHandle().invoke(dto), fieldMetadata.getFieldType());
 
                         if (idValue != null) {
-                            Object referencedEntity = entityManager.find(referencedEntityClass, idValue);
+                            Object referencedEntity = entityManager.find(referencedModel, idValue);
                             if (referencedEntity == null) {
                                 throw new IllegalArgumentException("Invalid ID for " + fieldName);
                             }
@@ -94,7 +94,7 @@ public class CommandService<EntityClass, ID> {
         return jpaRepository.save(entityFromDB);
     }
 
-    private void setEntityFieldValue(EntityClass entityFromDB, Object dto, Map.Entry<String, FieldMetadata> entry, String sourceFieldName) {
+    private void setEntityFieldValue(Model entityFromDB, Object dto, Map.Entry<String, FieldMetadata> entry, String sourceFieldName) {
         try {
             MethodHandles.Lookup lookup = MethodHandles.lookup();
             MethodHandle setterMethodHandle = lookup.findVirtual(entityFromDB.getClass(),
@@ -110,7 +110,7 @@ public class CommandService<EntityClass, ID> {
     }
 
 
-    public EntityClass update(EntityClass entityFromDB, Object dto, String lookupFieldName, Class<?> dtoClass, Set<String> fields) throws Throwable {
+    public Model update(Model entityFromDB, Object dto, String lookupFieldName, Class<?> dtoClass, Set<String> fields) throws Throwable {
         BeanWrapper entityWrapper = new BeanWrapperImpl(entityFromDB);
         Map<String, FieldMetadata> fieldsMetadata = DtoManager.getDtoByClassName(dtoClass);
         for (Map.Entry<String, FieldMetadata> entry : fieldsMetadata.entrySet()) {
@@ -129,11 +129,11 @@ public class CommandService<EntityClass, ID> {
                 if (referenceModelAnnotation != null) {
                     sourceFieldName = referenceModelAnnotation.referencingField();
                     String referencedModelName = referenceModelAnnotation.model();
-                    Class<?> referencedEntityClass = Class.forName(referencedModelName);
+                    Class<?> referencedModel = Class.forName(referencedModelName);
                     Object idValue = objectMapper.convertValue(entry.getValue().getGetterMethodHandle().invoke(dto), fieldMetadata.getFieldType());
 
                     if (idValue != null) {
-                        Object referencedEntity = entityManager.find(referencedEntityClass, idValue);
+                        Object referencedEntity = entityManager.find(referencedModel, idValue);
                         if (referencedEntity == null) {
                             throw new IllegalArgumentException("Invalid ID for " + fieldName);
                         }
@@ -152,7 +152,7 @@ public class CommandService<EntityClass, ID> {
         return jpaRepository.save(entityFromDB);
     }
 
-    public void delete(EntityClass entity) {
+    public void delete(Model entity) {
         jpaRepository.delete(entity);
     }
 
