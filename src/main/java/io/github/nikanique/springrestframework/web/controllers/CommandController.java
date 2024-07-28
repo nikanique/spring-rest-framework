@@ -31,17 +31,17 @@ import java.util.Optional;
 import java.util.Set;
 
 @Getter
-public abstract class CommandController<EntityClass, ID, ModelRepository extends JpaRepository<EntityClass, ID> & JpaSpecificationExecutor<EntityClass>>
-        extends BaseGenericController<EntityClass, ID, ModelRepository>
+public abstract class CommandController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+        extends BaseGenericController<Model, ID, ModelRepository>
         implements CreateSchemaGenerator, UpdateSchemaGenerator, DeleteSchemaGenerator {
 
 
     final private Filter lookupFilter;
     final private SerializerConfig updateResponseSerializerConfig;
     final private SerializerConfig createResponseSerializerConfig;
-    private EntityBuilder<EntityClass> entityHelper;
-    private CommandService<EntityClass, ID> commandService;
-    private QueryService<EntityClass> queryService;
+    private EntityBuilder<Model> entityHelper;
+    private CommandService<Model, ID> commandService;
+    private QueryService<Model> queryService;
 
 
     @Autowired
@@ -66,9 +66,9 @@ public abstract class CommandController<EntityClass, ID, ModelRepository extends
 
     @PostConstruct
     private void postConstruct() {
-        this.commandService = CommandService.getInstance(this.getEntityClass(), this.repository, this.context);
-        this.queryService = QueryService.getInstance(this.getEntityClass(), this.repository, this.context);
-        this.entityHelper = EntityBuilder.getInstance(this.getEntityClass(), this.context);
+        this.commandService = CommandService.getInstance(this.getModel(), this.repository, this.context);
+        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
+        this.entityHelper = EntityBuilder.getInstance(this.getModel(), this.context);
     }
 
     protected Class<?> getCreateRequestBodyDTO() {
@@ -103,7 +103,7 @@ public abstract class CommandController<EntityClass, ID, ModelRepository extends
     public ResponseEntity<ObjectNode> create(HttpServletRequest request) throws IOException {
         String requestBody = getRequestBody(request);
         Object dto = this.serializer.deserialize(requestBody, getCreateRequestBodyDTO());
-        EntityClass entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
+        Model entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
         entity = commandService.create(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 serializer.serialize(entity, getCreateResponseSerializerConfig())
@@ -117,7 +117,7 @@ public abstract class CommandController<EntityClass, ID, ModelRepository extends
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<EntityClass> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -126,7 +126,7 @@ public abstract class CommandController<EntityClass, ID, ModelRepository extends
         Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true);
 
         // Partially update the entity fields except the lookup field
-        EntityClass entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
+        Model entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -141,7 +141,7 @@ public abstract class CommandController<EntityClass, ID, ModelRepository extends
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<EntityClass> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -151,7 +151,7 @@ public abstract class CommandController<EntityClass, ID, ModelRepository extends
         Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true, presentFields);
 
         // Partially update the entity fields except the lookup field
-        EntityClass entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
+        Model entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -166,7 +166,7 @@ public abstract class CommandController<EntityClass, ID, ModelRepository extends
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<EntityClass> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
 
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
