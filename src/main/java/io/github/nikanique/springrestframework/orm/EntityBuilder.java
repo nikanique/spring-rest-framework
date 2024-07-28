@@ -49,10 +49,11 @@ public class EntityBuilder<Model> {
                 ReadOnly readOnlyAnnotation = fieldMetadata.get(fieldName).getReadOnly();
                 if (readOnlyAnnotation != null) {
                     ignoreProperties.add(fieldName);
+                    continue;
                 }
 
                 Expose exposeAnnotation = fieldMetadata.get(fieldName).getExpose();
-                if (exposeAnnotation != null && exposeAnnotation.source() != null) {
+                if (exposeAnnotation != null && !exposeAnnotation.source().equals("not-provided")) {
                     String sourceField = exposeAnnotation.source();
                     entityWrapper.setPropertyValue(sourceField, fieldValue);
                     ignoreProperties.add(sourceField);
