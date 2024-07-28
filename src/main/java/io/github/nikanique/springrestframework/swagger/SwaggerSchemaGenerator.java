@@ -101,26 +101,36 @@ public class SwaggerSchemaGenerator {
     }
 
     private static Schema generateSimpleFieldSchema(Class<?> fieldType) {
-        Schema fieldSchema = new Schema();
+
         String fieldTypeName = FieldType.getByTypeName(fieldType.getSimpleName()).toString().toLowerCase();
+        return mapJavaTypeToSwaggerType(fieldTypeName);
+    }
+
+    private static Schema mapJavaTypeToSwaggerType(String fieldTypeName) {
+        Schema fieldSchema = new Schema();
         switch (fieldTypeName) {
             case "date_time":
             case "timestamp":
-                fieldTypeName = "string";
+                fieldSchema.setType("string");
                 fieldSchema.setFormat("date-time");
                 break;
             case "long":
-                fieldTypeName = "integer";
+                fieldSchema.setType("integer");
                 fieldSchema.setFormat("int64");
                 break;
             case "float":
-                fieldTypeName = "number";
+                fieldSchema.setType("number");
                 fieldSchema.setFormat("float");
                 break;
+            case "double":
+                fieldSchema.setType("number");
+                fieldSchema.setFormat("double");
+                break;
             default:
+                fieldSchema.setType(fieldTypeName);
                 break;
         }
-        fieldSchema.setType(fieldTypeName);
+
         return fieldSchema;
     }
 
