@@ -87,7 +87,7 @@ To start using the library, follow these steps:
     import org.springframework.stereotype.Repository;
     
     @Repository
-    public interface StudentRepository extends JpaRepository<Student, Long>, JpaSpecificationExecutor<Kid> {
+    public interface StudentRepository extends JpaRepository<Student, Long>, JpaSpecificationExecutor<Student> {
     }
     ```
 
@@ -117,8 +117,8 @@ To start using the library, follow these steps:
     @RequestMapping("/student")
     @RestController
     @Tag(name = "Student")
-    public class StudentController extends QueryController<Kid, Long, KidRepository> {
-        public StudentController(KidRepository repository) {
+    public class StudentController extends QueryController<Student, Long, StudentRepository> {
+        public StudentController(StudentRepository repository) {
             super(repository);
         }
     
