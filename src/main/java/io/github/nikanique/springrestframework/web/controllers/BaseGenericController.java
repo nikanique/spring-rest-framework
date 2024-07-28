@@ -10,14 +10,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.web.method.HandlerMethod;
 
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
 
-public abstract class BaseGenericController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+public abstract class BaseGenericController<Model, ID, ModelRepository extends JpaRepository<Model, ID>>
         implements ApplicationContextAware {
 
     final protected ModelRepository repository;
