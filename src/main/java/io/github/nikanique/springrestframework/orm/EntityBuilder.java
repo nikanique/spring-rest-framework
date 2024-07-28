@@ -17,13 +17,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class EntityBuilder<EntityClass> {
+public class EntityBuilder<Model> {
 
     private static final ConcurrentHashMap<Class<?>, EntityBuilder<?>> instances = new ConcurrentHashMap<>();
-    private final Class<EntityClass> entityClass;
+    private final Class<Model> entityClass;
     private final EntityManager entityManager;
 
-    public EntityBuilder(Class<EntityClass> entityClass, ApplicationContext springContext) {
+    public EntityBuilder(Class<Model> entityClass, ApplicationContext springContext) {
         this.entityClass = entityClass;
         this.entityManager = springContext.getBean(EntityManager.class);
     }
@@ -33,14 +33,14 @@ public class EntityBuilder<EntityClass> {
         return (EntityBuilder<T>) instances.computeIfAbsent(entityClass, k -> new EntityBuilder<>(entityClass, springContext));
     }
 
-    public EntityClass fromDto(Object dto, Class<?> dtoClass) {
+    public Model fromDto(Object dto, Class<?> dtoClass) {
         try {
 
             Map<String, FieldMetadata> fieldMetadata = DtoManager.getDtoByClassName(dtoClass);
 
 
             // Create an instance of the main entity class
-            EntityClass entity = this.entityClass.newInstance();
+            Model entity = this.entityClass.newInstance();
             BeanWrapper entityWrapper = new BeanWrapperImpl(entity);
 
             List<String> ignoreProperties = new ArrayList<>();
@@ -63,11 +63,11 @@ public class EntityBuilder<EntityClass> {
                 // Check for the @ReferenceModel annotation
                 if (fieldMetadata.get(fieldName).getReferencedModel() != null) {
                     ReferencedModel referenceModelAnnotation = fieldMetadata.get(fieldName).getReferencedModel();
-                    String referencedEntityClassName = referenceModelAnnotation.model();
+                    String referencedModelName = referenceModelAnnotation.model();
                     String referencingFieldName = referenceModelAnnotation.referencingField();
-                    Class<?> referencedEntityClass = Class.forName(referencedEntityClassName);
+                    Class<?> referencedModel = Class.forName(referencedModelName);
                     if (fieldValue != null) {
-                        Object referencedEntity = entityManager.find(referencedEntityClass, fieldValue);
+                        Object referencedEntity = entityManager.find(referencedModel, fieldValue);
                         if (referencedEntity == null) {
                             throw new IllegalArgumentException("Invalid ID for " + fieldName);
                         }

@@ -31,15 +31,15 @@ import java.util.Optional;
 import java.util.TreeSet;
 
 @Getter
-public abstract class QueryController<EntityClass, ID, ModelRepository extends JpaRepository<EntityClass, ID> & JpaSpecificationExecutor<EntityClass>>
-        extends BaseGenericController<EntityClass, ID, ModelRepository>
+public abstract class QueryController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+        extends BaseGenericController<Model, ID, ModelRepository>
         implements ListSchemaGenerator, RetrieveSchemaGenerator {
 
     final private SerializerConfig listSerializerConfig;
     final private SerializerConfig retrieveSerializerConfig;
     final private Filter lookupFilter;
     final private FilterSet filterSet;
-    private QueryService<EntityClass> queryService;
+    private QueryService<Model> queryService;
 
     public QueryController(ModelRepository repository) {
         super(repository);
@@ -52,7 +52,7 @@ public abstract class QueryController<EntityClass, ID, ModelRepository extends J
 
     @PostConstruct
     private void postConstruct() {
-        this.queryService = QueryService.getInstance(this.getEntityClass(), this.repository, this.context);
+        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
 
 
@@ -91,7 +91,7 @@ public abstract class QueryController<EntityClass, ID, ModelRepository extends J
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Page<EntityClass> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortBy);
+        Page<Model> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortBy);
         List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
         PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
         return ResponseEntity.ok(response);
@@ -105,7 +105,7 @@ public abstract class QueryController<EntityClass, ID, ModelRepository extends J
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Optional<EntityClass> optionalEntity = queryService.get(searchCriteriaList);
+        Optional<Model> optionalEntity = queryService.get(searchCriteriaList);
         return optionalEntity.map(entity -> ResponseEntity.ok(
                         serializer.serialize(entity, getRetrieveSerializerConfig())
                 ))

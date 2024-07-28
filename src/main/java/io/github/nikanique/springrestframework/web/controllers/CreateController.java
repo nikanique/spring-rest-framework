@@ -22,15 +22,15 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 @Getter
-public abstract class CreateController<EntityClass, ID, ModelRepository extends JpaRepository<EntityClass, ID> & JpaSpecificationExecutor<EntityClass>>
-        extends BaseGenericController<EntityClass, ID, ModelRepository>
+public abstract class CreateController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+        extends BaseGenericController<Model, ID, ModelRepository>
         implements CreateSchemaGenerator {
 
 
     final private SerializerConfig createResponseSerializerConfig;
-    private EntityBuilder<EntityClass> entityHelper;
-    private CommandService<EntityClass, ID> commandService;
-    private QueryService<EntityClass> queryService;
+    private EntityBuilder<Model> entityHelper;
+    private CommandService<Model, ID> commandService;
+    private QueryService<Model> queryService;
 
 
     @Autowired
@@ -52,9 +52,9 @@ public abstract class CreateController<EntityClass, ID, ModelRepository extends 
 
     @PostConstruct
     private void postConstruct() {
-        this.commandService = CommandService.getInstance(this.getEntityClass(), this.repository, this.context);
-        this.queryService = QueryService.getInstance(this.getEntityClass(), this.repository, this.context);
-        this.entityHelper = EntityBuilder.getInstance(this.getEntityClass(), this.context);
+        this.commandService = CommandService.getInstance(this.getModel(), this.repository, this.context);
+        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
+        this.entityHelper = EntityBuilder.getInstance(this.getModel(), this.context);
     }
 
     protected Class<?> getCreateRequestBodyDTO() {
@@ -74,7 +74,7 @@ public abstract class CreateController<EntityClass, ID, ModelRepository extends 
     public ResponseEntity<ObjectNode> create(HttpServletRequest request) throws IOException {
         String requestBody = getRequestBody(request);
         Object dto = this.serializer.deserialize(requestBody, getCreateRequestBodyDTO());
-        EntityClass entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
+        Model entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
         entity = commandService.create(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body(
                 serializer.serialize(entity, getCreateResponseSerializerConfig())
