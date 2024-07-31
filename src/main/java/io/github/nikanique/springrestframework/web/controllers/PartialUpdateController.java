@@ -46,11 +46,12 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
 
 
     @Autowired
-    public PartialUpdateController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
+    public PartialUpdateController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) throws NoSuchMethodException {
         super(repository);
 
         this.updateResponseSerializerConfig = configUpdateResponseSerializerFields();
         this.lookupFilter = configLookupFilter();
+
     }
 
     private static String getRequestBody(HttpServletRequest request) throws IOException {
@@ -63,6 +64,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         }
         return sb.toString();
     }
+    
 
     @PostConstruct
     private void postConstruct() {
@@ -96,7 +98,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -105,7 +107,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true);
 
         // Partially update the entity fields except the lookup field
-        Model entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
+        Model entityFromDB = commandService.update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -120,7 +122,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -130,7 +132,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true, presentFields);
 
         // Partially update the entity fields except the lookup field
-        Model entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
+        Model entityFromDB = commandService.update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
