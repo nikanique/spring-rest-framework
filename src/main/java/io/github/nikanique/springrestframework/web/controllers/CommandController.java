@@ -117,7 +117,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -126,7 +126,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true);
 
         // Partially update the entity fields except the lookup field
-        Model entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
+        Model entityFromDB = commandService.update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -141,7 +141,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -151,7 +151,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true, presentFields);
 
         // Partially update the entity fields except the lookup field
-        Model entityFromDB = commandService.update(optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
+        Model entityFromDB = commandService.update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -166,13 +166,13 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Model> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
 
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
 
-        commandService.delete(optionalEntity.get());
+        commandService.delete((Model) optionalEntity.get());
         return ResponseEntity.noContent().build();
     }
 

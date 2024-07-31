@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.common.FieldType;
-import io.github.nikanique.springrestframework.utilities.MethodInvoker;
+import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
 import io.github.nikanique.springrestframework.utilities.StringHelper;
 import io.github.nikanique.springrestframework.utilities.ValueFormatter;
 import lombok.extern.slf4j.Slf4j;
@@ -141,7 +141,7 @@ public class Serializer {
                         objectNode.set(exposeName == null ? fieldSuffix : exposeName, arrayNode);
                     } else if (isSimpleType(fieldValue.getClass())) {
                         if (methodName != null) {
-                            fieldValue = MethodInvoker.invokeMethodFromString(methodName, fieldValue);
+                            fieldValue = MethodReflectionHelper.invokeMethodFromString(methodName, fieldValue);
                         }
                         objectNode.putPOJO(exposeName == null ? fieldSuffix : exposeName,
                                 ValueFormatter.formatValue(fieldValue, fieldType, valueFormat));

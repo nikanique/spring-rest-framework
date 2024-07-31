@@ -2,6 +2,7 @@ package io.github.nikanique.springrestframework.web.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.common.FieldType;
+import io.github.nikanique.springrestframework.dto.DtoManager;
 import io.github.nikanique.springrestframework.exceptions.ValidationException;
 import io.github.nikanique.springrestframework.filter.Filter;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
@@ -11,6 +12,7 @@ import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
 import io.github.nikanique.springrestframework.swagger.ListSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.RetrieveSchemaGenerator;
+import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
 import io.github.nikanique.springrestframework.web.responses.PagedResponse;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
@@ -26,6 +28,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 import java.util.TreeSet;
@@ -39,14 +43,17 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
     final private SerializerConfig retrieveSerializerConfig;
     final private Filter lookupFilter;
     final private FilterSet filterSet;
+    final private Method queryMethod;
     private QueryService<Model> queryService;
 
-    public QueryController(ModelRepository repository) {
+    public QueryController(ModelRepository repository) throws NoSuchMethodException {
         super(repository);
         this.filterSet = configFilterSet();
         this.listSerializerConfig = configListSerializer();
         this.retrieveSerializerConfig = configRetrieveSerializer();
         this.lookupFilter = configLookupFilter();
+        this.queryMethod = MethodReflectionHelper.findRepositoryMethod(getQueryMethodName(), repository);
+
     }
 
 
@@ -55,6 +62,9 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
         this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
 
+    protected String getQueryMethodName() {
+        return "findAll";
+    }
 
     protected Class<?> getListResponseDTO() {
         return getDTO();
@@ -85,13 +95,14 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
             HttpServletRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws ValidationException {
+            @RequestParam(defaultValue = "") String sortBy,
+            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws ValidationException, InvocationTargetException, IllegalAccessException {
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Page<Model> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortBy);
+        String sortColumn = DtoManager.mapFieldToDBColumn(sortBy, getListResponseDTO());
+        Page<Object> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
         List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
         PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
         return ResponseEntity.ok(response);
@@ -100,12 +111,12 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
     @GetMapping("/{lookup}")
     public ResponseEntity<ObjectNode> getByLookupValue(
             HttpServletRequest request,
-            @PathVariable(name = "lookup") Object lookupValue) {
+            @PathVariable(name = "lookup") Object lookupValue) throws InvocationTargetException, IllegalAccessException {
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Optional<Model> optionalEntity = queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = queryService.get(searchCriteriaList, getQueryMethod());
         return optionalEntity.map(entity -> ResponseEntity.ok(
                         serializer.serialize(entity, getRetrieveSerializerConfig())
                 ))
