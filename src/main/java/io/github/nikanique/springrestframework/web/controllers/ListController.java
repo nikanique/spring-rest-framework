@@ -1,7 +1,6 @@
 package io.github.nikanique.springrestframework.web.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.nikanique.springrestframework.exceptions.ValidationException;
 import io.github.nikanique.springrestframework.filter.FilterSet;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
@@ -22,7 +21,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.TreeSet;
@@ -77,7 +75,7 @@ public abstract class ListController<Model, ID, ModelRepository extends JpaRepos
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String sortBy,
-            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws ValidationException, InvocationTargetException, IllegalAccessException {
+            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws Throwable {
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
