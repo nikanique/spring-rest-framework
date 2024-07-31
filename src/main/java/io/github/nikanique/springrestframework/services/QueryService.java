@@ -5,6 +5,7 @@ import io.github.nikanique.springrestframework.annotation.SrfQuery;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.orm.SpecificationsBuilder;
+import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.FieldAccessor;
@@ -16,8 +17,9 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
 
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.sql.ResultSet;
@@ -27,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"unchecked", "rawtypes"})
+@Slf4j
 public class QueryService<Model> {
 
     private static final ConcurrentHashMap<Class<?>, QueryService<?>> instances = new ConcurrentHashMap<>();
@@ -34,7 +37,8 @@ public class QueryService<Model> {
     private final SpecificationsBuilder specificationsBuilder;
     private final Map<String, Class<?>> classCache = new HashMap<>();
     private final JdbcTemplate jdbcTemplate;
-    private Map<Method, String> methodQuery = new HashMap<>();
+    private final Map<Method, String> methodQueries = new HashMap<>();
+    private final Map<Method, MethodHandle> methodHandles = new HashMap<>();
 
     private QueryService(JpaSpecificationExecutor<Model> jpaSpecificationExecutor, ApplicationContext springContext) {
         this.jpaSpecificationExecutor = jpaSpecificationExecutor;
@@ -51,7 +55,7 @@ public class QueryService<Model> {
         return (QueryService<Model>) instances.computeIfAbsent(entityClass, k -> new QueryService<>(jpaSpecificationExecutor, springContext));
     }
 
-    public Optional<Object> get(List<SearchCriteria> searchCriteriaList, Method queryMethod) throws InvocationTargetException, IllegalAccessException {
+    public Optional<Object> get(List<SearchCriteria> searchCriteriaList, Method queryMethod) throws Throwable {
         Specification specifications = this.specificationsBuilder.fromSearchCriteriaList(searchCriteriaList);
         if (getSqlQuery(queryMethod) != null) {
             return Optional.of(queryForSingleRow(getSqlQuery(queryMethod), searchCriteriaList));
@@ -59,9 +63,9 @@ public class QueryService<Model> {
         return InvokeAndFindOne(queryMethod, specifications);
     }
 
-    private Optional<Object> InvokeAndFindOne(Method queryMethod, Specification specifications) throws InvocationTargetException, IllegalAccessException {
+    private Optional<Object> InvokeAndFindOne(Method queryMethod, Specification specifications) throws Throwable {
         Pageable pageable = PageRequest.of(0, 2);
-        Page<Object> results = (Page<Object>) queryMethod.invoke(jpaSpecificationExecutor, specifications, pageable);
+        Page<Object> results = (Page<Object>) getMethodHandle(queryMethod).invoke(jpaSpecificationExecutor, specifications, pageable);
         if (results.getSize() > 1) {
             throw new IllegalStateException("More than one result found");
         }
@@ -73,7 +77,7 @@ public class QueryService<Model> {
         return jpaSpecificationExecutor.findOne(specifications);
     }
 
-    public Page<Object> list(List<SearchCriteria> searchCriteriaList, int page, int size, Sort.Direction direction, String sortBy, Method queryMethod) throws InvocationTargetException, IllegalAccessException {
+    public Page<Object> list(List<SearchCriteria> searchCriteriaList, int page, int size, Sort.Direction direction, String sortBy, Method queryMethod) throws Throwable {
         Specification specifications = this.specificationsBuilder.fromSearchCriteriaList(searchCriteriaList);
         Pageable pageable;
         if (sortBy.isEmpty()) {
@@ -84,7 +88,7 @@ public class QueryService<Model> {
         if (getSqlQuery(queryMethod) != null) {
             return queryForPagedRows(getSqlQuery(queryMethod), searchCriteriaList, pageable);
         }
-        return (Page<Object>) queryMethod.invoke(jpaSpecificationExecutor, specifications, pageable);
+        return (Page<Object>) getMethodHandle(queryMethod).invoke(jpaSpecificationExecutor, specifications, pageable);
     }
 
 
@@ -240,8 +244,7 @@ public class QueryService<Model> {
             case LESS_OR_EQUAL:
                 return column + " <= " + formatValue(value);
             case BETWEEN:
-                if (value instanceof List) {
-                    List<?> values = (List<?>) value;
+                if (value instanceof List<?> values) {
                     if (values.size() == 2) {
                         return column + " BETWEEN " + formatValue(values.get(0)) + " AND " + formatValue(values.get(1));
                     }
@@ -250,8 +253,7 @@ public class QueryService<Model> {
             case CONTAINS:
                 return column + " LIKE " + formatValue("%" + value + "%");
             case IN:
-                if (value instanceof List) {
-                    List<?> values = (List<?>) value;
+                if (value instanceof List<?> values) {
                     String inClause = values.stream()
                             .map(this::formatValue)
                             .collect(Collectors.joining(", "));
@@ -284,7 +286,7 @@ public class QueryService<Model> {
 
 
     private String getSqlQuery(Method method) {
-        return methodQuery.computeIfAbsent(method, queryMethod -> {
+        return methodQueries.computeIfAbsent(method, queryMethod -> {
             // Use AnnotationUtils to find the @SrfQuery annotation on the method
             SrfQuery queryAnnotation = AnnotationUtils.findAnnotation(method, SrfQuery.class);
             if (queryAnnotation != null && !queryAnnotation.value().equals("")) {
@@ -292,6 +294,19 @@ public class QueryService<Model> {
                 return queryAnnotation.value();
             }
             return null;
+        });
+    }
+
+    private MethodHandle getMethodHandle(Method method) {
+        return methodHandles.computeIfAbsent(method, queryMethod -> {
+            // Use AnnotationUtils to find the @SrfQuery annotation on the method
+            MethodHandles.Lookup lookup = MethodHandles.lookup();
+            try {
+                return lookup.unreflect(method);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
         });
     }
 }

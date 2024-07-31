@@ -3,7 +3,6 @@ package io.github.nikanique.springrestframework.web.controllers;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.common.FieldType;
 import io.github.nikanique.springrestframework.dto.DtoManager;
-import io.github.nikanique.springrestframework.exceptions.ValidationException;
 import io.github.nikanique.springrestframework.filter.Filter;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.filter.FilterSet;
@@ -28,7 +27,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
@@ -96,7 +94,7 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String sortBy,
-            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws ValidationException, InvocationTargetException, IllegalAccessException {
+            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws Throwable {
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
@@ -111,7 +109,7 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
     @GetMapping("/{lookup}")
     public ResponseEntity<ObjectNode> getByLookupValue(
             HttpServletRequest request,
-            @PathVariable(name = "lookup") Object lookupValue) throws InvocationTargetException, IllegalAccessException {
+            @PathVariable(name = "lookup") Object lookupValue) throws Throwable {
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);

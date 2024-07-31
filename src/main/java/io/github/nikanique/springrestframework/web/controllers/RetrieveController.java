@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.method.HandlerMethod;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
@@ -72,7 +71,7 @@ public abstract class RetrieveController<Model, ID, ModelRepository extends JpaR
     @GetMapping("/{lookup}")
     public ResponseEntity<ObjectNode> getByLookupValue(
             HttpServletRequest request,
-            @PathVariable(name = "lookup") Object lookupValue) throws InvocationTargetException, IllegalAccessException {
+            @PathVariable(name = "lookup") Object lookupValue) throws Throwable {
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
