@@ -1,6 +1,7 @@
 package io.github.nikanique.springrestframework.web.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.github.nikanique.springrestframework.dto.DtoManager;
 import io.github.nikanique.springrestframework.filter.FilterSet;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
@@ -79,8 +80,9 @@ public abstract class ListController<Model, ID, ModelRepository extends JpaRepos
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
+        String sortColumn = DtoManager.mapFieldToDBColumn(sortBy, getDTO());
 
-        Page<Object> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortBy, getQueryMethod());
+        Page<Object> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
         List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
         PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
         return ResponseEntity.ok(response);
