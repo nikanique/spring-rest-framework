@@ -41,4 +41,15 @@ public class DtoManager {
         });
     }
 
+
+    public static String mapFieldToDBColumn(String fieldName, Class<?> dtoClass) {
+        if (!fieldName.isEmpty()) {
+            Expose expose = DtoManager.getDtoByClassName(dtoClass).get(fieldName).getExpose();
+            if (expose != null && !expose.source().equals("not-provided")) {
+                return expose.source();
+            }
+        }
+        return fieldName;
+    }
+
 }
