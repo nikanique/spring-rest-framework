@@ -2,6 +2,7 @@ package io.github.nikanique.springrestframework.services;
 
 
 import io.github.nikanique.springrestframework.annotation.SrfQuery;
+import io.github.nikanique.springrestframework.common.FieldType;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.orm.SpecificationsBuilder;
@@ -222,11 +223,6 @@ public class QueryService<Model> {
     }
 
 
-    private String convertFieldNameToColumnName(String fieldName) {
-        // Convert camelCase field names to snake_case column names
-        return fieldName.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase();
-    }
-
     private String convertCriteriaToSql(SearchCriteria criteria) {
         String column = criteria.getKey();
         FilterOperation operation = criteria.getFilterOperation();
@@ -234,28 +230,21 @@ public class QueryService<Model> {
 
         switch (operation) {
             case EQUAL:
-                return column + " = " + formatValue(value);
+                return column + " = " + formatValue(value, criteria.getFieldType());
             case GREATER:
-                return column + " > " + formatValue(value);
+                return column + " > " + formatValue(value, criteria.getFieldType());
             case GREATER_OR_EQUAL:
-                return column + " >= " + formatValue(value);
+                return column + " >= " + formatValue(value, criteria.getFieldType());
             case LESS:
-                return column + " < " + formatValue(value);
+                return column + " < " + formatValue(value, criteria.getFieldType());
             case LESS_OR_EQUAL:
-                return column + " <= " + formatValue(value);
-            case BETWEEN:
-                if (value instanceof List<?> values) {
-                    if (values.size() == 2) {
-                        return column + " BETWEEN " + formatValue(values.get(0)) + " AND " + formatValue(values.get(1));
-                    }
-                }
-                throw new IllegalArgumentException("BETWEEN operation requires a list of two values.");
+                return column + " <= " + formatValue(value, criteria.getFieldType());
             case CONTAINS:
-                return column + " LIKE " + formatValue("%" + value + "%");
+                return column + " LIKE " + ("'%" + value.toString() + "%'");
             case IN:
-                if (value instanceof List<?> values) {
-                    String inClause = values.stream()
-                            .map(this::formatValue)
+                if (value instanceof String) {
+                    String inClause = Arrays.stream(((String) value).split(","))
+                            .map(item -> formatValue(item, criteria.getFieldType()))
                             .collect(Collectors.joining(", "));
                     return column + " IN (" + inClause + ")";
                 }
@@ -265,11 +254,15 @@ public class QueryService<Model> {
         }
     }
 
-    private String formatValue(Object value) {
-        if (value instanceof String) {
+    private String formatValue(Object value, FieldType fieldType) {
+        if (
+                fieldType.isDateTime() || fieldType == FieldType.STRING
+        ) {
             return "'" + value + "'";
         }
+
         return value.toString();
+
     }
 
     private String buildPaginationClause(Pageable pageable) {
