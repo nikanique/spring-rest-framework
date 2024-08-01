@@ -1,6 +1,7 @@
 package io.github.nikanique.springrestframework.orm;
 
 
+import io.github.nikanique.springrestframework.common.FieldType;
 import io.github.nikanique.springrestframework.exceptions.ValidationException;
 import io.github.nikanique.springrestframework.filter.Filter;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
@@ -25,6 +26,7 @@ public class SearchCriteria {
     private String key;
     private FilterOperation filterOperation;
     private Object value;
+    private FieldType fieldType;
 
     public static List<SearchCriteria> fromValue(Object lookupValue, Filter filter) {
         List<SearchCriteria> searchCriteriaList = new ArrayList<>();
@@ -33,7 +35,8 @@ public class SearchCriteria {
                         filter.getName() :
                         filter.getModelFieldName(),
                 filter.getOperation(),
-                lookupValue);
+                lookupValue,
+                filter.getFieldType());
         searchCriteriaList.add(searchCriteria);
         return searchCriteriaList;
     }
@@ -44,7 +47,7 @@ public class SearchCriteria {
                         filter.getName() :
                         filter.getModelFieldName(),
                 filter.getOperation(),
-                value);
+                value, filter.getFieldType());
         searchCriteriaList.add(searchCriteria);
         return searchCriteriaList;
     }
@@ -69,9 +72,9 @@ public class SearchCriteria {
                 if (fromValue != null) {
                     Object parsedFromValue = extractAndValidateValue(fromParameterName, filter, fromValue);
                     Object parsedToValue = extractAndValidateValue(toParameterName, filter, toValue);
-                    SearchCriteria fromSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.GREATER_OR_EQUAL, parsedFromValue);
+                    SearchCriteria fromSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.GREATER_OR_EQUAL, parsedFromValue, filter.getFieldType());
                     searchCriteriaList.add(fromSearchCriteria);
-                    SearchCriteria toSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.LESS_OR_EQUAL, parsedToValue);
+                    SearchCriteria toSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.LESS_OR_EQUAL, parsedToValue, filter.getFieldType());
                     searchCriteriaList.add(toSearchCriteria);
                 }
 
@@ -79,7 +82,7 @@ public class SearchCriteria {
                 value = filterValues.get(name);
                 if (value != null) {
                     Object parsedValue = extractAndValidateValue(name, filter, value);
-                    SearchCriteria searchCriteria = new SearchCriteria(modelFieldName, filter.getOperation(), parsedValue);
+                    SearchCriteria searchCriteria = new SearchCriteria(modelFieldName, filter.getOperation(), parsedValue, filter.getFieldType());
                     searchCriteriaList.add(searchCriteria);
                 }
             }
@@ -150,9 +153,9 @@ public class SearchCriteria {
                 if (fromValue != null) {
                     Object parsedFromValue = extractAndValidateValue(fromParameterName, filter, fromValue);
                     Object parsedToValue = extractAndValidateValue(toParameterName, filter, toValue);
-                    SearchCriteria fromSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.GREATER_OR_EQUAL, parsedFromValue);
+                    SearchCriteria fromSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.GREATER_OR_EQUAL, parsedFromValue, filter.getFieldType());
                     searchCriteriaList.add(fromSearchCriteria);
-                    SearchCriteria toSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.LESS_OR_EQUAL, parsedToValue);
+                    SearchCriteria toSearchCriteria = new SearchCriteria(modelFieldName, FilterOperation.LESS_OR_EQUAL, parsedToValue, filter.getFieldType());
                     searchCriteriaList.add(toSearchCriteria);
                 }
 
@@ -160,7 +163,7 @@ public class SearchCriteria {
                 value = ServletRequestUtils.getStringParameter(request, name, null);
                 if (value != null) {
                     Object parsedValue = extractAndValidateValue(name, filter, value);
-                    SearchCriteria searchCriteria = new SearchCriteria(modelFieldName, filter.getOperation(), parsedValue);
+                    SearchCriteria searchCriteria = new SearchCriteria(modelFieldName, filter.getOperation(), parsedValue, filter.getFieldType());
                     searchCriteriaList.add(searchCriteria);
                 }
             }

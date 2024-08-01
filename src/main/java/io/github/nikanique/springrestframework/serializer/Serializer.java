@@ -18,6 +18,9 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Component
@@ -229,7 +232,11 @@ public class Serializer {
                 clazz == Boolean.class ||
                 clazz == Date.class ||
                 clazz == java.sql.Date.class ||
-                clazz == java.sql.Timestamp.class;
+                clazz == java.sql.Timestamp.class ||
+                clazz == LocalDateTime.class ||
+                clazz == LocalDate.class ||
+                clazz == LocalTime.class;
+        
     }
 
     private String capitalize(String str) {
