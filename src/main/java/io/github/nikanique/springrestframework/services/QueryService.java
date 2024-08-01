@@ -169,7 +169,7 @@ public class QueryService<Model> {
 
     private Class<?> getOrCreateDynamicClass(ResultSet rs, String query) {
         // Create a cache key based on the query
-        String cacheKey = generateCacheKey(query);
+        String cacheKey = StringHelper.generateHashCode(query);
         return classCache.computeIfAbsent(cacheKey, k -> {
             try {
                 return createDynamicClass(rs);
@@ -179,10 +179,6 @@ public class QueryService<Model> {
         });
     }
 
-    private String generateCacheKey(String query) {
-        // Simple hash of the query string for caching purposes
-        return Integer.toHexString(query.hashCode());
-    }
 
     private Class<?> createDynamicClass(ResultSet rs) throws SQLException {
 
