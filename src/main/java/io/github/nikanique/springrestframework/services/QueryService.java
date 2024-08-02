@@ -6,7 +6,7 @@ import io.github.nikanique.springrestframework.common.FieldType;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.orm.SpecificationsBuilder;
-import io.github.nikanique.springrestframework.utilities.StringHelper;
+import io.github.nikanique.springrestframework.utilities.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import net.bytebuddy.ByteBuddy;
 import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
@@ -169,7 +169,7 @@ public class QueryService<Model> {
 
     private Class<?> getOrCreateDynamicClass(ResultSet rs, String query) {
         // Create a cache key based on the query
-        String cacheKey = StringHelper.generateHashCode(query);
+        String cacheKey = StringUtils.generateHashCode(query);
         return classCache.computeIfAbsent(cacheKey, k -> {
             try {
                 return createDynamicClass(rs);
@@ -188,7 +188,7 @@ public class QueryService<Model> {
         for (int i = 1; i <= columnCount; i++) {
             String columnName = rs.getMetaData().getColumnLabel(i);
             builder = builder.defineField(columnName, Object.class)
-                    .defineMethod("get" + StringHelper.capitalize(columnName), Object.class, Modifier.PUBLIC)
+                    .defineMethod("get" + StringUtils.capitalize(columnName), Object.class, Modifier.PUBLIC)
                     .intercept(FieldAccessor.ofField(columnName));
         }
         return builder.make().load(getClass().getClassLoader(), ClassLoadingStrategy.Default.CHILD_FIRST).getLoaded();

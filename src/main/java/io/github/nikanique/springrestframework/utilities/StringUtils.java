@@ -3,7 +3,7 @@ package io.github.nikanique.springrestframework.utilities;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class StringHelper {
+public class StringUtils {
 
     public static int countOfOccurrences(String mainString, String substring) {
         if (mainString == null || mainString.isEmpty() || substring == null || substring.isEmpty()) {

@@ -7,7 +7,7 @@ import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.common.FieldType;
 import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
-import io.github.nikanique.springrestframework.utilities.StringHelper;
+import io.github.nikanique.springrestframework.utilities.StringUtils;
 import io.github.nikanique.springrestframework.utilities.ValueFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -113,10 +113,10 @@ public class Serializer {
 
     private ObjectNode serializeObject(Object object, HashMap<String, FieldDescriptor> fields, String parentPrefix) {
         ObjectNode objectNode = objectMapper.createObjectNode();
-        int numberOfParentPrefixes = StringHelper.countOfOccurrences(parentPrefix, "__");
+        int numberOfParentPrefixes = StringUtils.countOfOccurrences(parentPrefix, "__");
         for (String fieldName : fields.keySet()) {
             if (!fieldName.startsWith(parentPrefix) ||
-                    (numberOfParentPrefixes < StringHelper.countOfOccurrences(fieldName, "__"))
+                    (numberOfParentPrefixes < StringUtils.countOfOccurrences(fieldName, "__"))
             ) {
                 continue;
             }
@@ -236,7 +236,7 @@ public class Serializer {
                 clazz == LocalDateTime.class ||
                 clazz == LocalDate.class ||
                 clazz == LocalTime.class;
-        
+
     }
 
     private String capitalize(String str) {
