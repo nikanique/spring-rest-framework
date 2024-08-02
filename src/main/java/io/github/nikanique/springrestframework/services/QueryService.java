@@ -2,8 +2,6 @@ package io.github.nikanique.springrestframework.services;
 
 
 import io.github.nikanique.springrestframework.annotation.SrfQuery;
-import io.github.nikanique.springrestframework.common.FieldType;
-import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.orm.SpecificationsBuilder;
 import io.github.nikanique.springrestframework.utilities.StringUtils;
@@ -28,7 +26,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.stream.Collectors;
+
 
 @SuppressWarnings({"unchecked", "rawtypes"})
 @Slf4j
@@ -60,7 +58,7 @@ public class QueryService<Model> {
     public Optional<Object> get(List<SearchCriteria> searchCriteriaList, Method queryMethod) throws Throwable {
         Specification specifications = this.specificationsBuilder.fromSearchCriteriaList(searchCriteriaList);
         if (getSqlQuery(queryMethod) != null) {
-            return Optional.of(queryForSingleRow(getSqlQuery(queryMethod), searchCriteriaList));
+            return Optional.of(executeQueryForSingleRow(getSqlQuery(queryMethod), searchCriteriaList));
         }
         return InvokeAndFindOne(queryMethod, specifications);
     }
@@ -88,14 +86,14 @@ public class QueryService<Model> {
             pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         }
         if (getSqlQuery(queryMethod) != null) {
-            return queryForPagedRows(getSqlQuery(queryMethod), searchCriteriaList, pageable);
+            return executeQueryForPagedRows(getSqlQuery(queryMethod), searchCriteriaList, pageable);
         }
         return (Page<Object>) getMethodHandle(queryMethod).invoke(jpaSpecificationExecutor, specifications, pageable);
     }
 
 
-    public Object queryForSingleRow(String sqlQuery, List<SearchCriteria> searchCriteriaList) {
-        String whereClause = buildWhereClause(searchCriteriaList);
+    public Object executeQueryForSingleRow(String sqlQuery, List<SearchCriteria> searchCriteriaList) {
+        String whereClause = SearchCriteria.generateSqlWhereClause(searchCriteriaList);
 
         String finalQuery = sqlQuery.replace("${whereClause}", whereClause)
                 .replace("${pagination}", "");
@@ -126,8 +124,8 @@ public class QueryService<Model> {
     }
 
 
-    public Page<Object> queryForPagedRows(String sqlQuery, List<SearchCriteria> searchCriteriaList, Pageable pageable) {
-        String whereClause = buildWhereClause(searchCriteriaList);
+    public Page<Object> executeQueryForPagedRows(String sqlQuery, List<SearchCriteria> searchCriteriaList, Pageable pageable) {
+        String whereClause = SearchCriteria.generateSqlWhereClause(searchCriteriaList);
         String paginationClause = buildPaginationClause(pageable);
 
         String finalQuery = sqlQuery.replace("${whereClause}", whereClause)
@@ -157,15 +155,6 @@ public class QueryService<Model> {
         return new PageImpl<>(results, pageable, total);
     }
 
-    private String buildWhereClause(List<SearchCriteria> searchCriteriaList) {
-        if (searchCriteriaList == null || searchCriteriaList.isEmpty()) {
-            return "";
-        }
-        List<String> predicates = searchCriteriaList.stream()
-                .map(this::convertCriteriaToSql)
-                .collect(Collectors.toList());
-        return "WHERE " + String.join(" AND ", predicates);
-    }
 
     private Class<?> getOrCreateDynamicClass(ResultSet rs, String query) {
         // Create a cache key based on the query
@@ -212,48 +201,6 @@ public class QueryService<Model> {
         }
     }
 
-
-    private String convertCriteriaToSql(SearchCriteria criteria) {
-        String column = criteria.getKey();
-        FilterOperation operation = criteria.getFilterOperation();
-        Object value = criteria.getValue();
-
-        switch (operation) {
-            case EQUAL:
-                return column + " = " + formatValue(value, criteria.getFieldType());
-            case GREATER:
-                return column + " > " + formatValue(value, criteria.getFieldType());
-            case GREATER_OR_EQUAL:
-                return column + " >= " + formatValue(value, criteria.getFieldType());
-            case LESS:
-                return column + " < " + formatValue(value, criteria.getFieldType());
-            case LESS_OR_EQUAL:
-                return column + " <= " + formatValue(value, criteria.getFieldType());
-            case CONTAINS:
-                return column + " LIKE " + ("'%" + value.toString() + "%'");
-            case IN:
-                if (value instanceof String) {
-                    String inClause = Arrays.stream(((String) value).split(","))
-                            .map(item -> formatValue(item, criteria.getFieldType()))
-                            .collect(Collectors.joining(", "));
-                    return column + " IN (" + inClause + ")";
-                }
-                throw new IllegalArgumentException("IN operation requires a list of values.");
-            default:
-                throw new IllegalArgumentException("Unknown filter operation: " + operation);
-        }
-    }
-
-    private String formatValue(Object value, FieldType fieldType) {
-        if (
-                fieldType.isDateTime() || fieldType == FieldType.STRING
-        ) {
-            return "'" + value + "'";
-        }
-
-        return value.toString();
-
-    }
 
     private String buildPaginationClause(Pageable pageable) {
         if (pageable == null) {
