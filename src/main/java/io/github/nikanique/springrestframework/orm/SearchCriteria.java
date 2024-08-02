@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -171,5 +172,57 @@ public class SearchCriteria {
         }
 
         return searchCriteriaList;
+    }
+
+    public static String generateSqlWhereClause(List<SearchCriteria> searchCriteriaList) {
+        if (searchCriteriaList == null || searchCriteriaList.isEmpty()) {
+            return "";
+        }
+        List<String> predicates = searchCriteriaList.stream()
+                .map(SearchCriteria::convertCriteriaToSql)
+                .collect(Collectors.toList());
+        return "WHERE " + String.join(" AND ", predicates);
+    }
+
+    public String convertCriteriaToSql() {
+        String column = this.getKey();
+        FilterOperation operation = this.getFilterOperation();
+        Object value = this.getValue();
+
+        switch (operation) {
+            case EQUAL:
+                return column + " = " + formatValue(value, this.getFieldType());
+            case GREATER:
+                return column + " > " + formatValue(value, this.getFieldType());
+            case GREATER_OR_EQUAL:
+                return column + " >= " + formatValue(value, this.getFieldType());
+            case LESS:
+                return column + " < " + formatValue(value, this.getFieldType());
+            case LESS_OR_EQUAL:
+                return column + " <= " + formatValue(value, this.getFieldType());
+            case CONTAINS:
+                return column + " LIKE " + ("'%" + value.toString() + "%'");
+            case IN:
+                if (value instanceof String) {
+                    String inClause = Arrays.stream(((String) value).split(","))
+                            .map(item -> formatValue(item, this.getFieldType()))
+                            .collect(Collectors.joining(", "));
+                    return column + " IN (" + inClause + ")";
+                }
+                throw new IllegalArgumentException("IN operation requires a list of values.");
+            default:
+                throw new IllegalArgumentException("Unknown filter operation: " + operation);
+        }
+    }
+
+    private String formatValue(Object value, FieldType fieldType) {
+        if (
+                fieldType.isDateTime() || fieldType == FieldType.STRING
+        ) {
+            return "'" + value + "'";
+        }
+
+        return value.toString();
+
     }
 }
