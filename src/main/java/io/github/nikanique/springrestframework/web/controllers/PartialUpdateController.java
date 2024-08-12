@@ -21,7 +21,9 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.method.HandlerMethod;
 
 import java.io.BufferedReader;
@@ -31,26 +33,25 @@ import java.util.Optional;
 import java.util.Set;
 
 @Getter
-public abstract class CommandController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+public abstract class PartialUpdateController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
         implements CreateSchemaGenerator, UpdateSchemaGenerator, DeleteSchemaGenerator {
 
 
     final private Filter lookupFilter;
     final private SerializerConfig updateResponseSerializerConfig;
-    final private SerializerConfig createResponseSerializerConfig;
     private EntityBuilder<Model> entityHelper;
     private CommandService<Model, ID> commandService;
     private QueryService<Model> queryService;
 
 
     @Autowired
-    public CommandController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
+    public PartialUpdateController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) throws NoSuchMethodException {
         super(repository);
 
         this.updateResponseSerializerConfig = configUpdateResponseSerializerFields();
-        this.createResponseSerializerConfig = configCreateSerializerFields();
         this.lookupFilter = configLookupFilter();
+
     }
 
     private static String getRequestBody(HttpServletRequest request) throws IOException {
@@ -64,6 +65,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         return sb.toString();
     }
 
+
     @PostConstruct
     private void postConstruct() {
         this.commandService = CommandService.getInstance(this.getModel(), this.repository, this.context);
@@ -71,13 +73,6 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         this.entityHelper = EntityBuilder.getInstance(this.getModel(), this.context);
     }
 
-    protected Class<?> getCreateRequestBodyDTO() {
-        return getDTO();
-    }
-
-    protected Class<?> getCreateResponseBodyDTO() {
-        return getDTO();
-    }
 
     protected Class<?> getUpdateRequestBodyDTO() {
         return getDTO();
@@ -85,10 +80,6 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
 
     protected Class<?> getUpdateResponseBodyDTO() {
         return getDTO();
-    }
-
-    public SerializerConfig configCreateSerializerFields() {
-        return SerializerConfig.fromDTO(getCreateResponseBodyDTO());
     }
 
     public SerializerConfig configUpdateResponseSerializerFields() {
@@ -99,16 +90,6 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         return new Filter("id", FilterOperation.EQUAL, FieldType.INTEGER);
     }
 
-    @PostMapping("/")
-    public ResponseEntity<ObjectNode> create(HttpServletRequest request) throws IOException {
-        String requestBody = getRequestBody(request);
-        Object dto = this.serializer.deserialize(requestBody, getCreateRequestBodyDTO());
-        Model entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
-        entity = commandService.create(entity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                serializer.serialize(entity, getCreateResponseSerializerConfig())
-        );
-    }
 
     @PutMapping("/{lookup}")
     public ResponseEntity<ObjectNode> update(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
@@ -160,30 +141,9 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
     }
 
 
-    @DeleteMapping("/{lookup}")
-    public ResponseEntity<Void> delete(HttpServletRequest request, @PathVariable(name = "lookup") Object lookupValue) {
-        List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
-        searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
-
-        // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
-
-        if (!optionalEntity.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        commandService.delete((Model) optionalEntity.get());
-        return ResponseEntity.noContent().build();
-    }
-
-
     public void customizeOperationForController(Operation operation, HandlerMethod handlerMethod) {
-        if (handlerMethod.getMethod().getName().equals("create")) {
-            generateCreateSchema(operation, getCreateRequestBodyDTO(), getCreateResponseBodyDTO());
-        } else if (handlerMethod.getMethod().getName().equals("update") || handlerMethod.getMethod().getName().equals("partialUpdate")) {
+        if (handlerMethod.getMethod().getName().equals("update") || handlerMethod.getMethod().getName().equals("partialUpdate")) {
             generateUpdateSchema(operation, getLookupFilter(), getUpdateRequestBodyDTO(), getUpdateResponseBodyDTO());
-        } else if (handlerMethod.getMethod().getName().equals("delete")) {
-            generateDeleteSchema(operation, getLookupFilter());
         }
     }
 

@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.common.FieldType;
-import io.github.nikanique.springrestframework.utilities.MethodInvoker;
-import io.github.nikanique.springrestframework.utilities.StringHelper;
+import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
+import io.github.nikanique.springrestframework.utilities.StringUtils;
 import io.github.nikanique.springrestframework.utilities.ValueFormatter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +18,9 @@ import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.*;
 
 @Component
@@ -110,10 +113,10 @@ public class Serializer {
 
     private ObjectNode serializeObject(Object object, HashMap<String, FieldDescriptor> fields, String parentPrefix) {
         ObjectNode objectNode = objectMapper.createObjectNode();
-        int numberOfParentPrefixes = StringHelper.countOfOccurrences(parentPrefix, "__");
+        int numberOfParentPrefixes = StringUtils.countOfOccurrences(parentPrefix, "__");
         for (String fieldName : fields.keySet()) {
             if (!fieldName.startsWith(parentPrefix) ||
-                    (numberOfParentPrefixes < StringHelper.countOfOccurrences(fieldName, "__"))
+                    (numberOfParentPrefixes < StringUtils.countOfOccurrences(fieldName, "__"))
             ) {
                 continue;
             }
@@ -141,7 +144,7 @@ public class Serializer {
                         objectNode.set(exposeName == null ? fieldSuffix : exposeName, arrayNode);
                     } else if (isSimpleType(fieldValue.getClass())) {
                         if (methodName != null) {
-                            fieldValue = MethodInvoker.invokeMethodFromString(methodName, fieldValue);
+                            fieldValue = MethodReflectionHelper.invokeMethodFromString(methodName, fieldValue);
                         }
                         objectNode.putPOJO(exposeName == null ? fieldSuffix : exposeName,
                                 ValueFormatter.formatValue(fieldValue, fieldType, valueFormat));
@@ -229,7 +232,11 @@ public class Serializer {
                 clazz == Boolean.class ||
                 clazz == Date.class ||
                 clazz == java.sql.Date.class ||
-                clazz == java.sql.Timestamp.class;
+                clazz == java.sql.Timestamp.class ||
+                clazz == LocalDateTime.class ||
+                clazz == LocalDate.class ||
+                clazz == LocalTime.class;
+
     }
 
     private String capitalize(String str) {

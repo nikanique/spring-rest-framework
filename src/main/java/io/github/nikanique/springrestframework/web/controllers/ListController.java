@@ -1,12 +1,13 @@
 package io.github.nikanique.springrestframework.web.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.nikanique.springrestframework.exceptions.ValidationException;
+import io.github.nikanique.springrestframework.dto.DtoManager;
 import io.github.nikanique.springrestframework.filter.FilterSet;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
 import io.github.nikanique.springrestframework.swagger.ListSchemaGenerator;
+import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
 import io.github.nikanique.springrestframework.web.responses.PagedResponse;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
@@ -21,6 +22,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
+import java.lang.reflect.Method;
 import java.util.List;
 import java.util.TreeSet;
 
@@ -31,14 +33,20 @@ public abstract class ListController<Model, ID, ModelRepository extends JpaRepos
 
     final private SerializerConfig listSerializerConfig;
     final private FilterSet filterSet;
+    final private Method queryMethod;
     private QueryService<Model> queryService;
 
-    public ListController(ModelRepository repository) {
+    public ListController(ModelRepository repository) throws NoSuchMethodException {
         super(repository);
         this.filterSet = configFilterSet();
         this.listSerializerConfig = configListSerializer();
+        this.queryMethod = MethodReflectionHelper.findRepositoryMethod(getQueryMethodName(), repository);
+
     }
 
+    protected String getQueryMethodName() {
+        return "findAll";
+    }
 
     @PostConstruct
     private void postConstruct() {
@@ -67,13 +75,14 @@ public abstract class ListController<Model, ID, ModelRepository extends JpaRepos
             HttpServletRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
-            @RequestParam(defaultValue = "id") String sortBy,
-            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws ValidationException {
+            @RequestParam(defaultValue = "") String sortBy,
+            @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws Throwable {
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
+        String sortColumn = DtoManager.mapFieldToDBColumn(sortBy, getDTO());
 
-        Page<Model> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortBy);
+        Page<Object> entityPage = queryService.getPagedlist(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
         List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
         PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
         return ResponseEntity.ok(response);
