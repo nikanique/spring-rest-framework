@@ -64,7 +64,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         }
         return sb.toString();
     }
-    
+
 
     @PostConstruct
     private void postConstruct() {
@@ -98,7 +98,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -122,7 +122,7 @@ public abstract class PartialUpdateController<Model, ID, ModelRepository extends
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
