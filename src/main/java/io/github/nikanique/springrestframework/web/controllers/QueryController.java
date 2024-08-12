@@ -100,7 +100,7 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         String sortColumn = DtoManager.mapFieldToDBColumn(sortBy, getListResponseDTO());
-        Page<Object> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
+        Page<Object> entityPage = queryService.getPagedlist(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
         List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
         PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
         return ResponseEntity.ok(response);
@@ -114,7 +114,7 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Optional<Object> optionalEntity = queryService.get(searchCriteriaList, getQueryMethod());
+        Optional<Object> optionalEntity = queryService.getObject(searchCriteriaList, getQueryMethod());
         return optionalEntity.map(entity -> ResponseEntity.ok(
                         serializer.serialize(entity, getRetrieveSerializerConfig())
                 ))

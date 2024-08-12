@@ -55,15 +55,15 @@ public class QueryService<Model> {
         return (QueryService<Model>) instances.computeIfAbsent(entityClass, k -> new QueryService<>(jpaSpecificationExecutor, springContext));
     }
 
-    public Optional<Object> get(List<SearchCriteria> searchCriteriaList, Method queryMethod) throws Throwable {
+    public Optional<Object> getObject(List<SearchCriteria> searchCriteriaList, Method queryMethod) throws Throwable {
         Specification specifications = this.specificationsBuilder.fromSearchCriteriaList(searchCriteriaList);
         if (getSqlQuery(queryMethod) != null) {
-            return Optional.of(executeQueryForSingleRow(getSqlQuery(queryMethod), searchCriteriaList));
+            return Optional.of(executeQueryForObject(getSqlQuery(queryMethod), searchCriteriaList));
         }
-        return InvokeAndFindOne(queryMethod, specifications);
+        return invokeQueryMethodForOneObject(queryMethod, specifications);
     }
 
-    private Optional<Object> InvokeAndFindOne(Method queryMethod, Specification specifications) throws Throwable {
+    private Optional<Object> invokeQueryMethodForOneObject(Method queryMethod, Specification specifications) throws Throwable {
         Pageable pageable = PageRequest.of(0, 2);
         Page<Object> results = (Page<Object>) getMethodHandle(queryMethod).invoke(jpaSpecificationExecutor, specifications, pageable);
         if (results.getSize() > 1) {
@@ -72,12 +72,12 @@ public class QueryService<Model> {
         return results.get().findFirst();
     }
 
-    public Optional<Object> get(List<SearchCriteria> searchCriteriaList) {
+    public Optional<Object> getObject(List<SearchCriteria> searchCriteriaList) {
         Specification specifications = this.specificationsBuilder.fromSearchCriteriaList(searchCriteriaList);
         return jpaSpecificationExecutor.findOne(specifications);
     }
 
-    public Page<Object> list(List<SearchCriteria> searchCriteriaList, int page, int size, Sort.Direction direction, String sortBy, Method queryMethod) throws Throwable {
+    public Page<Object> getPagedlist(List<SearchCriteria> searchCriteriaList, int page, int size, Sort.Direction direction, String sortBy, Method queryMethod) throws Throwable {
         Specification specifications = this.specificationsBuilder.fromSearchCriteriaList(searchCriteriaList);
         Pageable pageable;
         if (sortBy.isEmpty()) {
@@ -86,13 +86,23 @@ public class QueryService<Model> {
             pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
         }
         if (getSqlQuery(queryMethod) != null) {
-            return executeQueryForPagedRows(getSqlQuery(queryMethod), searchCriteriaList, pageable);
+            return executeQueryForPagedList(getSqlQuery(queryMethod), searchCriteriaList, pageable);
         }
         return (Page<Object>) getMethodHandle(queryMethod).invoke(jpaSpecificationExecutor, specifications, pageable);
     }
 
+    public Page<Object> getPagedlist(List<SearchCriteria> searchCriteriaList, int page, int size, Sort.Direction direction, String sortBy) throws Throwable {
+        Specification specifications = this.specificationsBuilder.fromSearchCriteriaList(searchCriteriaList);
+        Pageable pageable;
+        if (sortBy.isEmpty()) {
+            pageable = PageRequest.of(page, size, Sort.unsorted());
+        } else {
+            pageable = PageRequest.of(page, size, Sort.by(direction, sortBy));
+        }
+        return (Page<Object>) jpaSpecificationExecutor.findAll(specifications, pageable);
+    }
 
-    public Object executeQueryForSingleRow(String sqlQuery, List<SearchCriteria> searchCriteriaList) {
+    public Object executeQueryForObject(String sqlQuery, List<SearchCriteria> searchCriteriaList) {
         String whereClause = SearchCriteria.generateSqlWhereClause(searchCriteriaList);
 
         String finalQuery = sqlQuery.replace("${whereClause}", whereClause)
@@ -124,7 +134,7 @@ public class QueryService<Model> {
     }
 
 
-    public Page<Object> executeQueryForPagedRows(String sqlQuery, List<SearchCriteria> searchCriteriaList, Pageable pageable) {
+    public Page<Object> executeQueryForPagedList(String sqlQuery, List<SearchCriteria> searchCriteriaList, Pageable pageable) {
         String whereClause = SearchCriteria.generateSqlWhereClause(searchCriteriaList);
         String paginationClause = buildPaginationClause(pageable);
 

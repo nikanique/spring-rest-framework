@@ -82,7 +82,7 @@ public abstract class ListController<Model, ID, ModelRepository extends JpaRepos
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
         String sortColumn = DtoManager.mapFieldToDBColumn(sortBy, getDTO());
 
-        Page<Object> entityPage = queryService.list(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
+        Page<Object> entityPage = queryService.getPagedlist(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
         List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
         PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
         return ResponseEntity.ok(response);

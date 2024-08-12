@@ -117,7 +117,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -141,7 +141,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -166,7 +166,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.get(searchCriteriaList);
+        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
 
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();

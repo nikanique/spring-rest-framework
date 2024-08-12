@@ -76,7 +76,7 @@ public abstract class RetrieveController<Model, ID, ModelRepository extends JpaR
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
 
-        Optional<Object> optionalEntity = queryService.get(searchCriteriaList, getQueryMethod());
+        Optional<Object> optionalEntity = queryService.getObject(searchCriteriaList, getQueryMethod());
         return optionalEntity.map(entity -> ResponseEntity.ok(
                         serializer.serialize(entity, getRetrieveSerializerConfig())
                 ))
