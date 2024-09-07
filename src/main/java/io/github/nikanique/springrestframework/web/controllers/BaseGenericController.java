@@ -5,6 +5,7 @@ import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.Serializer;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.Getter;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
@@ -21,6 +22,7 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
 
     final protected ModelRepository repository;
 
+    @Getter
     protected Serializer serializer;
     protected ApplicationContext context;
 

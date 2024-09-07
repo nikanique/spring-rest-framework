@@ -1,9 +1,7 @@
 package io.github.nikanique.springrestframework.web.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.nikanique.springrestframework.dto.DtoManager;
 import io.github.nikanique.springrestframework.filter.FilterSet;
-import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
 import io.github.nikanique.springrestframework.swagger.ListSchemaGenerator;
@@ -13,7 +11,6 @@ import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -23,13 +20,12 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.TreeSet;
 
 @Getter
 public abstract class ListController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements ListSchemaGenerator {
+        implements ListSchemaGenerator, IListController {
 
     final private SerializerConfig listSerializerConfig;
     final private FilterSet filterSet;
@@ -58,10 +54,6 @@ public abstract class ListController<Model, ID, ModelRepository extends JpaRepos
         return getDTO();
     }
 
-    protected Class<?> getRetrieveResponseDTO() {
-        return getDTO();
-    }
-
     protected FilterSet configFilterSet() {
         return new FilterSet(new TreeSet<>());
     }
@@ -71,26 +63,19 @@ public abstract class ListController<Model, ID, ModelRepository extends JpaRepos
     }
 
     @GetMapping("/")
-    public ResponseEntity<PagedResponse<ObjectNode>> listAll(
+    public ResponseEntity<PagedResponse<ObjectNode>> get(
             HttpServletRequest request,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String sortBy,
             @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws Throwable {
 
-        List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, filterSet);
-        searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
-        String sortColumn = DtoManager.mapFieldToDBColumn(sortBy, getDTO());
-
-        Page<Object> entityPage = queryService.getPagedlist(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
-        List<ObjectNode> dtoList = entityPage.map(entity -> serializer.serialize(entity, getListSerializerConfig())).getContent();
-        PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
-        return ResponseEntity.ok(response);
+        return this.list(this, request, page, size, sortBy, direction);
     }
 
 
     public void customizeOperationForController(Operation operation, HandlerMethod handlerMethod) {
-        if (handlerMethod.getMethod().getName().equals("listAll")) {
+        if (handlerMethod.getMethod().getName().equals("get")) {
             this.generateListSchema(operation, this.getFilterSet().getFilters(), this.getListResponseDTO());
         }
     }
