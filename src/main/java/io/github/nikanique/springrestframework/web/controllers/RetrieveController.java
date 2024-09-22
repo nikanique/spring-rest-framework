@@ -4,10 +4,8 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.common.FieldType;
 import io.github.nikanique.springrestframework.filter.Filter;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
-import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
-import io.github.nikanique.springrestframework.swagger.RetrieveSchemaGenerator;
 import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
@@ -21,13 +19,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.method.HandlerMethod;
 
 import java.lang.reflect.Method;
-import java.util.List;
-import java.util.Optional;
 
 @Getter
 public abstract class RetrieveController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements RetrieveSchemaGenerator {
+        implements IRetrieveController {
 
     final private SerializerConfig retrieveSerializerConfig;
     final private Filter lookupFilter;
@@ -73,14 +69,7 @@ public abstract class RetrieveController<Model, ID, ModelRepository extends JpaR
             HttpServletRequest request,
             @PathVariable(name = "lookup") Object lookupValue) throws Throwable {
 
-        List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
-        searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
-
-        Optional<Object> optionalEntity = queryService.getObject(searchCriteriaList, getQueryMethod());
-        return optionalEntity.map(entity -> ResponseEntity.ok(
-                        serializer.serialize(entity, getRetrieveSerializerConfig())
-                ))
-                .orElseGet(() -> ResponseEntity.notFound().build());
+        return this.retrieve(this, request, lookupValue);
     }
 
 
