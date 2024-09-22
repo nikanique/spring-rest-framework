@@ -64,9 +64,9 @@ public class QueryService<Model> {
     }
 
     private Optional<Object> invokeQueryMethodForOneObject(Method queryMethod, Specification specifications) throws Throwable {
-        Pageable pageable = PageRequest.of(0, 2);
+        Pageable pageable = PageRequest.of(0, 1);
         Page<Object> results = (Page<Object>) getMethodHandle(queryMethod).invoke(jpaSpecificationExecutor, specifications, pageable);
-        if (results.getSize() > 1) {
+        if (results.getTotalElements() > 1) {
             throw new IllegalStateException("More than one result found");
         }
         return results.get().findFirst();

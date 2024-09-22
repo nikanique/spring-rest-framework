@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.filter.FilterSet;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
-import io.github.nikanique.springrestframework.swagger.ListSchemaGenerator;
 import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
 import io.github.nikanique.springrestframework.web.responses.PagedResponse;
 import io.swagger.v3.oas.models.Operation;
@@ -25,7 +24,7 @@ import java.util.TreeSet;
 @Getter
 public abstract class ListController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements ListSchemaGenerator, IListController {
+        implements IListController<Model> {
 
     final private SerializerConfig listSerializerConfig;
     final private FilterSet filterSet;
