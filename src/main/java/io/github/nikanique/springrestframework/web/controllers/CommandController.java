@@ -9,7 +9,6 @@ import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.CommandService;
 import io.github.nikanique.springrestframework.services.QueryService;
-import io.github.nikanique.springrestframework.swagger.CreateSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.DeleteSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.UpdateSchemaGenerator;
 import io.swagger.v3.oas.models.Operation;
@@ -24,7 +23,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.HandlerMethod;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
@@ -33,7 +31,7 @@ import java.util.Set;
 @Getter
 public abstract class CommandController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements CreateSchemaGenerator, UpdateSchemaGenerator, DeleteSchemaGenerator {
+        implements ICreateController<Model, ID>, UpdateSchemaGenerator, DeleteSchemaGenerator {
 
 
     final private Filter lookupFilter;
@@ -53,16 +51,6 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         this.lookupFilter = configLookupFilter();
     }
 
-    private static String getRequestBody(HttpServletRequest request) throws IOException {
-        StringBuilder sb = new StringBuilder();
-        try (BufferedReader reader = request.getReader()) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                sb.append(line);
-            }
-        }
-        return sb.toString();
-    }
 
     @PostConstruct
     private void postConstruct() {
@@ -71,11 +59,11 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         this.entityHelper = EntityBuilder.getInstance(this.getModel(), this.context);
     }
 
-    protected Class<?> getCreateRequestBodyDTO() {
+    public Class<?> getCreateRequestBodyDTO() {
         return getDTO();
     }
 
-    protected Class<?> getCreateResponseBodyDTO() {
+    public Class<?> getCreateResponseBodyDTO() {
         return getDTO();
     }
 
@@ -100,14 +88,8 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
     }
 
     @PostMapping("/")
-    public ResponseEntity<ObjectNode> create(HttpServletRequest request) throws IOException {
-        String requestBody = getRequestBody(request);
-        Object dto = this.serializer.deserialize(requestBody, getCreateRequestBodyDTO());
-        Model entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
-        entity = commandService.create(entity);
-        return ResponseEntity.status(HttpStatus.CREATED).body(
-                serializer.serialize(entity, getCreateResponseSerializerConfig())
-        );
+    public ResponseEntity<ObjectNode> post(HttpServletRequest request) throws IOException {
+        return this.create(this, request);
     }
 
     @PutMapping("/{lookup}")
@@ -178,7 +160,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
 
 
     public void customizeOperationForController(Operation operation, HandlerMethod handlerMethod) {
-        if (handlerMethod.getMethod().getName().equals("create")) {
+        if (handlerMethod.getMethod().getName().equals("post")) {
             generateCreateSchema(operation, getCreateRequestBodyDTO(), getCreateResponseBodyDTO());
         } else if (handlerMethod.getMethod().getName().equals("update") || handlerMethod.getMethod().getName().equals("partialUpdate")) {
             generateUpdateSchema(operation, getLookupFilter(), getUpdateRequestBodyDTO(), getUpdateResponseBodyDTO());
