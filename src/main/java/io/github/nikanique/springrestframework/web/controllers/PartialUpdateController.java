@@ -9,7 +9,6 @@ import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.CommandService;
 import io.github.nikanique.springrestframework.services.QueryService;
-import io.github.nikanique.springrestframework.swagger.CreateSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.DeleteSchemaGenerator;
 import io.github.nikanique.springrestframework.swagger.UpdateSchemaGenerator;
 import io.swagger.v3.oas.models.Operation;
@@ -35,7 +34,7 @@ import java.util.Set;
 @Getter
 public abstract class PartialUpdateController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements CreateSchemaGenerator, UpdateSchemaGenerator, DeleteSchemaGenerator {
+        implements UpdateSchemaGenerator, DeleteSchemaGenerator {
 
 
     final private Filter lookupFilter;

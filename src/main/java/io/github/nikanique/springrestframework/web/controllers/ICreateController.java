@@ -57,9 +57,7 @@ public interface ICreateController<Model, ID> {
     default void generateCreateSchema(Operation operation, Class<?> createRequestBodyDTO, Class<?> createResponseDTO) {
         Schema<?> requestBodySchema = SwaggerSchemaGenerator.generateSchema(createRequestBodyDTO, EndpointType.WRITE);
         Content content = new Content().addMediaType("application/json", new MediaType().schema(requestBodySchema));
-
         operation.requestBody(new io.swagger.v3.oas.models.parameters.RequestBody().content(content));
-
         // Generate Response schema
         Schema<?> responseSchema = SwaggerSchemaGenerator.generateSchema(createResponseDTO, EndpointType.READ);
         ApiResponse response = new ApiResponse().content(new Content().addMediaType("application/json",

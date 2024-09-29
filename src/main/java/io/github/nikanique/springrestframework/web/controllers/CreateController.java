@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.github.nikanique.springrestframework.orm.EntityBuilder;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.CommandService;
-import io.github.nikanique.springrestframework.services.QueryService;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +24,6 @@ public abstract class CreateController<Model, ID, ModelRepository extends JpaRep
     final private SerializerConfig createResponseSerializerConfig;
     private EntityBuilder<Model> entityHelper;
     private CommandService<Model, ID> commandService;
-    private QueryService<Model> queryService;
 
     @Autowired
     public CreateController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
