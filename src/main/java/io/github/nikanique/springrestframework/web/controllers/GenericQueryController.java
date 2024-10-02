@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 import java.util.TreeSet;
 
 @Getter
@@ -30,6 +31,7 @@ public abstract class GenericQueryController<Model, ID, ModelRepository extends 
         extends BaseGenericController<Model, ID, ModelRepository>
         implements ListController<Model>, RetrieveController<Model> {
 
+    final private Set<String> allowedOrderByFields;
     final private SerializerConfig listSerializerConfig;
     final private SerializerConfig retrieveSerializerConfig;
     final private Filter lookupFilter;
@@ -44,6 +46,7 @@ public abstract class GenericQueryController<Model, ID, ModelRepository extends 
         this.retrieveSerializerConfig = configRetrieveSerializer();
         this.lookupFilter = configLookupFilter();
         this.queryMethod = MethodReflectionHelper.findRepositoryMethod(getQueryMethodName(), repository);
+        this.allowedOrderByFields = configAllowedOrderByFields();
 
     }
 
