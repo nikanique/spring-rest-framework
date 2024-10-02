@@ -56,4 +56,5 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
     public void setSerializer(Serializer serializer) {
         this.serializer = serializer;
     }
+
 }
