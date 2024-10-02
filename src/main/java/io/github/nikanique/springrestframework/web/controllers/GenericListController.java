@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
 import java.lang.reflect.Method;
+import java.util.Set;
 import java.util.TreeSet;
 
 @Getter
@@ -29,6 +30,7 @@ public abstract class GenericListController<Model, ID, ModelRepository extends J
     final private SerializerConfig listSerializerConfig;
     final private FilterSet filterSet;
     final private Method queryMethod;
+    private final Set<String> allowedOrderByFields;
     private QueryService<Model> queryService;
 
     public GenericListController(ModelRepository repository) throws NoSuchMethodException {
@@ -36,6 +38,7 @@ public abstract class GenericListController<Model, ID, ModelRepository extends J
         this.filterSet = configFilterSet();
         this.listSerializerConfig = configListSerializer();
         this.queryMethod = MethodReflectionHelper.findRepositoryMethod(getQueryMethodName(), repository);
+        this.allowedOrderByFields = configAllowedOrderByFields();
 
     }
 

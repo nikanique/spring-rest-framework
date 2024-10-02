@@ -23,6 +23,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.http.ResponseEntity;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -37,8 +38,17 @@ public interface ListController<Model> {
 
     FilterSet getFilterSet();
 
+    Set<String> getAllowedOrderByFields();
+
+    default Set<String> configAllowedOrderByFields() {
+        return Collections.emptySet();
+    }
 
     default ResponseEntity<PagedResponse<ObjectNode>> list(BaseGenericController controller, HttpServletRequest request, int page, int size, String sortBy, Sort.Direction direction) throws Throwable {
+        if (!getAllowedOrderByFields().isEmpty() && !getAllowedOrderByFields().contains(sortBy)) {
+            return ResponseEntity.badRequest().body(new PagedResponse<>("Sorting by " + sortBy + " is not allowed"));
+        }
+
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, getFilterSet());
         searchCriteriaList = controller.filterByRequest(request, searchCriteriaList);
         String sortColumn = DtoManager.mapFieldToDBColumn(sortBy, controller.getDTO());
