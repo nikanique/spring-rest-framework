@@ -1,60 +1,57 @@
 package io.github.nikanique.springrestframework.web.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.github.nikanique.springrestframework.common.EndpointType;
 import io.github.nikanique.springrestframework.orm.EntityBuilder;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.CommandService;
+import io.github.nikanique.springrestframework.swagger.SwaggerSchemaGenerator;
 import io.swagger.v3.oas.models.Operation;
-import jakarta.annotation.PostConstruct;
+import io.swagger.v3.oas.models.media.Content;
+import io.swagger.v3.oas.models.media.MediaType;
+import io.swagger.v3.oas.models.media.Schema;
+import io.swagger.v3.oas.models.responses.ApiResponse;
 import jakarta.servlet.http.HttpServletRequest;
-import lombok.Getter;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.method.HandlerMethod;
 
 import java.io.IOException;
 
-@Getter
-public abstract class CreateController<Model, ID, ModelRepository extends JpaRepository<Model, ID>>
-        extends BaseGenericController<Model, ID, ModelRepository>
-        implements ICreateController<Model, ID> {
+public interface CreateController<Model, ID> extends RequestBodyProvider {
+    SerializerConfig getCreateResponseSerializerConfig();
 
-    final private SerializerConfig createResponseSerializerConfig;
-    private EntityBuilder<Model> entityHelper;
-    private CommandService<Model, ID> commandService;
+    Class<?> getCreateRequestBodyDTO();
 
-    @Autowired
-    public CreateController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
-        super(repository);
-        this.createResponseSerializerConfig = configCreateSerializerFields();
-    }
+    Class<?> getCreateResponseBodyDTO();
 
-    @PostConstruct
-    private void postConstruct() {
-        this.commandService = CommandService.getInstance(this.getModel(), this.repository, this.context);
-        this.entityHelper = EntityBuilder.getInstance(this.getModel(), this.context);
-    }
+    EntityBuilder<Model> getEntityHelper();
 
-    public Class<?> getCreateRequestBodyDTO() {
-        return getDTO();
-    }
+    CommandService<Model, ID> getCommandService();
 
-    public Class<?> getCreateResponseBodyDTO() {
-        return getDTO();
-    }
-
-    @PostMapping("/")
-    public ResponseEntity<ObjectNode> post(HttpServletRequest request) throws IOException {
-        return this.create(this, request);
-    }
-
-    public void customizeOperationForController(Operation operation, HandlerMethod handlerMethod) {
-        if (handlerMethod.getMethod().getName().equals("post")) {
-            this.generateCreateSchema(operation, getCreateRequestBodyDTO(), getCreateResponseBodyDTO());
-        }
+    default SerializerConfig configCreateSerializerFields() {
+        return SerializerConfig.fromDTO(getCreateResponseBodyDTO());
     }
 
 
+    default ResponseEntity<ObjectNode> create(BaseGenericController controller, HttpServletRequest request) throws IOException {
+        String requestBody = this.getRequestBody(request);
+        Object dto = controller.getSerializer().deserialize(requestBody, getCreateRequestBodyDTO());
+        Model entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
+        entity = getCommandService().create(entity);
+        return ResponseEntity.status(HttpStatus.CREATED).body(
+                controller.getSerializer().serialize(entity, getCreateResponseSerializerConfig())
+        );
+    }
+
+    default void generateCreateSchema(Operation operation, Class<?> createRequestBodyDTO, Class<?> createResponseDTO) {
+        Schema<?> requestBodySchema = SwaggerSchemaGenerator.generateSchema(createRequestBodyDTO, EndpointType.WRITE);
+        Content content = new Content().addMediaType("application/json", new MediaType().schema(requestBodySchema));
+        operation.requestBody(new io.swagger.v3.oas.models.parameters.RequestBody().content(content));
+        // Generate Response schema
+        Schema<?> responseSchema = SwaggerSchemaGenerator.generateSchema(createResponseDTO, EndpointType.READ);
+        ApiResponse response = new ApiResponse().content(new Content().addMediaType("application/json",
+                new MediaType().schema(responseSchema)));
+        operation.responses(new io.swagger.v3.oas.models.responses.ApiResponses()
+                .addApiResponse("201", response));
+    }
 }

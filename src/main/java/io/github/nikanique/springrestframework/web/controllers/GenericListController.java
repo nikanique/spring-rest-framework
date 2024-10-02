@@ -1,9 +1,6 @@
 package io.github.nikanique.springrestframework.web.controllers;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import io.github.nikanique.springrestframework.common.FieldType;
-import io.github.nikanique.springrestframework.filter.Filter;
-import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.filter.FilterSet;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
@@ -18,7 +15,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.method.HandlerMethod;
 
@@ -26,42 +22,34 @@ import java.lang.reflect.Method;
 import java.util.TreeSet;
 
 @Getter
-public abstract class QueryController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+public abstract class GenericListController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements IListController<Model>, IRetrieveController<Model> {
+        implements ListController<Model> {
 
     final private SerializerConfig listSerializerConfig;
-    final private SerializerConfig retrieveSerializerConfig;
-    final private Filter lookupFilter;
     final private FilterSet filterSet;
     final private Method queryMethod;
     private QueryService<Model> queryService;
 
-    public QueryController(ModelRepository repository) throws NoSuchMethodException {
+    public GenericListController(ModelRepository repository) throws NoSuchMethodException {
         super(repository);
         this.filterSet = configFilterSet();
         this.listSerializerConfig = configListSerializer();
-        this.retrieveSerializerConfig = configRetrieveSerializer();
-        this.lookupFilter = configLookupFilter();
         this.queryMethod = MethodReflectionHelper.findRepositoryMethod(getQueryMethodName(), repository);
 
-    }
-
-
-    @PostConstruct
-    private void postConstruct() {
-        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
 
     protected String getQueryMethodName() {
         return "findAll";
     }
 
-    protected Class<?> getListResponseDTO() {
-        return getDTO();
+    @PostConstruct
+    private void postConstruct() {
+        this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
 
-    protected Class<?> getRetrieveResponseDTO() {
+
+    protected Class<?> getListResponseDTO() {
         return getDTO();
     }
 
@@ -71,14 +59,6 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
 
     public SerializerConfig configListSerializer() {
         return SerializerConfig.fromDTO(getListResponseDTO());
-    }
-
-    public SerializerConfig configRetrieveSerializer() {
-        return SerializerConfig.fromDTO(getRetrieveResponseDTO());
-    }
-
-    protected Filter configLookupFilter() {
-        return new Filter("id", FilterOperation.EQUAL, FieldType.INTEGER);
     }
 
     @GetMapping("/")
@@ -92,20 +72,10 @@ public abstract class QueryController<Model, ID, ModelRepository extends JpaRepo
         return this.list(this, request, page, size, sortBy, direction);
     }
 
-    @GetMapping("/{lookup}")
-    public ResponseEntity<ObjectNode> getByLookupValue(
-            HttpServletRequest request,
-            @PathVariable(name = "lookup") Object lookupValue) throws Throwable {
-
-        return this.retrieve(this, request, lookupValue);
-    }
-
 
     public void customizeOperationForController(Operation operation, HandlerMethod handlerMethod) {
         if (handlerMethod.getMethod().getName().equals("get")) {
             this.generateListSchema(operation, this.getFilterSet().getFilters(), this.getListResponseDTO());
-        } else if (handlerMethod.getMethod().getName().equals("getByLookupValue")) {
-            this.generateRetrieveSchema(operation, this.getLookupFilter(), this.getRetrieveResponseDTO());
         }
     }
 

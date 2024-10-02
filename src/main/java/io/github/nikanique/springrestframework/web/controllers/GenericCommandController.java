@@ -5,12 +5,9 @@ import io.github.nikanique.springrestframework.common.FieldType;
 import io.github.nikanique.springrestframework.filter.Filter;
 import io.github.nikanique.springrestframework.filter.FilterOperation;
 import io.github.nikanique.springrestframework.orm.EntityBuilder;
-import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.CommandService;
 import io.github.nikanique.springrestframework.services.QueryService;
-import io.github.nikanique.springrestframework.swagger.DeleteSchemaGenerator;
-import io.github.nikanique.springrestframework.swagger.UpdateSchemaGenerator;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -18,20 +15,16 @@ import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.method.HandlerMethod;
 
 import java.io.IOException;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Getter
-public abstract class CommandController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
+public abstract class GenericCommandController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements ICreateController<Model, ID>, UpdateSchemaGenerator, DeleteSchemaGenerator {
+        implements CreateController<Model, ID>, UpdateController<Model, ID>, DeleteController<Model, ID> {
 
 
     final private Filter lookupFilter;
@@ -43,7 +36,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
 
 
     @Autowired
-    public CommandController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
+    public GenericCommandController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
         super(repository);
 
         this.updateResponseSerializerConfig = configUpdateResponseSerializerFields();
@@ -67,7 +60,7 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
         return getDTO();
     }
 
-    protected Class<?> getUpdateRequestBodyDTO() {
+    public Class<?> getUpdateRequestBodyDTO() {
         return getDTO();
     }
 
@@ -93,76 +86,27 @@ public abstract class CommandController<Model, ID, ModelRepository extends JpaRe
     }
 
     @PutMapping("/{lookup}")
-    public ResponseEntity<ObjectNode> update(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
-        // Create search criteria from lookup value
-        List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
-        searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
-
-        // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
-        if (!optionalEntity.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        String requestBody = getRequestBody(request);
-        Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true);
-
-        // Partially update the entity fields except the lookup field
-        Model entityFromDB = commandService.update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
-
-        // Return the updated entity
-        return ResponseEntity.status(HttpStatus.OK).body(
-                serializer.serialize(entityFromDB, getUpdateResponseSerializerConfig())
-        );
+    public ResponseEntity<ObjectNode> put(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
+        return this.update(this, lookupValue, request);
     }
+
 
     @PatchMapping("/{lookup}")
     public ResponseEntity<ObjectNode> partialUpdate(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
-        // Create search criteria from lookup value
-        List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
-        searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
-
-        // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
-        if (!optionalEntity.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        String requestBody = getRequestBody(request);
-        Set<String> presentFields = serializer.getPresentFields(requestBody);
-        Object dto = serializer.deserialize(requestBody, this.getUpdateRequestBodyDTO(), true, presentFields);
-
-        // Partially update the entity fields except the lookup field
-        Model entityFromDB = commandService.update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
-
-        // Return the updated entity
-        return ResponseEntity.status(HttpStatus.OK).body(
-                serializer.serialize(entityFromDB, getUpdateResponseSerializerConfig())
-        );
+        return this.partialUpdate(this, lookupValue, request);
     }
 
 
     @DeleteMapping("/{lookup}")
     public ResponseEntity<Void> delete(HttpServletRequest request, @PathVariable(name = "lookup") Object lookupValue) {
-        List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
-        searchCriteriaList = this.filterByRequest(request, searchCriteriaList);
-
-        // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.queryService.getObject(searchCriteriaList);
-
-        if (!optionalEntity.isPresent()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        commandService.delete((Model) optionalEntity.get());
-        return ResponseEntity.noContent().build();
+        return deleteObject(this, request, lookupValue);
     }
 
 
     public void customizeOperationForController(Operation operation, HandlerMethod handlerMethod) {
         if (handlerMethod.getMethod().getName().equals("post")) {
             generateCreateSchema(operation, getCreateRequestBodyDTO(), getCreateResponseBodyDTO());
-        } else if (handlerMethod.getMethod().getName().equals("update") || handlerMethod.getMethod().getName().equals("partialUpdate")) {
+        } else if (handlerMethod.getMethod().getName().equals("put") || handlerMethod.getMethod().getName().equals("patch")) {
             generateUpdateSchema(operation, getLookupFilter(), getUpdateRequestBodyDTO(), getUpdateResponseBodyDTO());
         } else if (handlerMethod.getMethod().getName().equals("delete")) {
             generateDeleteSchema(operation, getLookupFilter());
