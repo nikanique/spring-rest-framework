@@ -10,4 +10,8 @@ import java.util.Map;
 public class ErrorResponse {
     private String message;
     private Map<String, String> fields;
+
+    public ErrorResponse(String message) {
+        this.message = message;
+    }
 }
