@@ -10,6 +10,7 @@ import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.QueryService;
 import io.github.nikanique.springrestframework.swagger.SwaggerSchemaGenerator;
+import io.github.nikanique.springrestframework.web.responses.ErrorResponse;
 import io.github.nikanique.springrestframework.web.responses.PagedResponse;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.Content;
@@ -44,9 +45,9 @@ public interface ListController<Model> {
         return Collections.emptySet();
     }
 
-    default ResponseEntity<PagedResponse<ObjectNode>> list(BaseGenericController controller, HttpServletRequest request, int page, int size, String sortBy, Sort.Direction direction) throws Throwable {
-        if (!getAllowedOrderByFields().isEmpty() && !getAllowedOrderByFields().contains(sortBy)) {
-            return ResponseEntity.badRequest().body(new PagedResponse<>("Sorting by " + sortBy + " is not allowed"));
+    default ResponseEntity list(BaseGenericController controller, HttpServletRequest request, int page, int size, String sortBy, Sort.Direction direction) throws Throwable {
+        if (!getAllowedOrderByFields().isEmpty() && !sortBy.isEmpty() && !getAllowedOrderByFields().contains(sortBy)) {
+            return ResponseEntity.badRequest().body(new ErrorResponse("Sorting by " + sortBy + " is not allowed"));
         }
 
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromUrlQuery(request, getFilterSet());
@@ -84,7 +85,12 @@ public interface ListController<Model> {
         Schema<?> responseSchema = SwaggerSchemaGenerator.generatePagedResponseSchema(PagedResponse.class, listResponseDTO, EndpointType.READ);
         ApiResponse response = new ApiResponse().content(new Content().addMediaType("application/json",
                 new MediaType().schema(responseSchema)));
+        // Generate error Response schema
+        Schema<?> errorResponseSchema = SwaggerSchemaGenerator.generateSchema(ErrorResponse.class, EndpointType.READ);
+        ApiResponse errorResponse = new ApiResponse().content(new Content().addMediaType("application/json",
+                new MediaType().schema(errorResponseSchema)));
+
         operation.responses(new io.swagger.v3.oas.models.responses.ApiResponses()
-                .addApiResponse("200", response));
+                .addApiResponse("200", response).addApiResponse("400", errorResponse));
     }
 }
