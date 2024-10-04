@@ -8,7 +8,6 @@ import io.github.nikanique.springrestframework.orm.EntityBuilder;
 import io.github.nikanique.springrestframework.serializer.SerializerConfig;
 import io.github.nikanique.springrestframework.services.CommandService;
 import io.github.nikanique.springrestframework.services.QueryService;
-import io.github.nikanique.springrestframework.swagger.DeleteSchemaGenerator;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -25,7 +24,7 @@ import org.springframework.web.method.HandlerMethod;
 @Getter
 public abstract class GenericUpdateController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>
-        implements UpdateController, DeleteSchemaGenerator {
+        implements UpdateController {
 
 
     final private Filter lookupFilter;
