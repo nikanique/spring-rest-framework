@@ -72,7 +72,6 @@
         </dependency>
     </dependencies>
 
-    <!-- تغییرات اصلی در این بخش است: پیکربندی برای انتشار به GitHub Packages -->
     <distributionManagement>
         <repository>
             <id>github</id>
@@ -93,7 +92,7 @@
                 <version>1.7.0</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>github</serverId> <!-- استفاده از GitHub به جای Nexus -->
+                    <serverId>github</serverId>
                     <nexusUrl>https://maven.pkg.github.com/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
@@ -131,7 +130,7 @@
                                 <arg>loopback</arg>
                             </gpgArguments>
                             <useAgent>false</useAgent>
-                            <passphraseServerId>github</passphraseServerId> <!-- استفاده از GitHub به جای ossrh -->
+                            <passphrase>${gpg.passphrase}</passphrase> <!-- استفاده از passphrase -->
                         </configuration>
                     </plugin>
                     <plugin>
