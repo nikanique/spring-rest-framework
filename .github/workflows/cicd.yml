@@ -63,6 +63,7 @@ jobs:
               <id>ossrh</id>
               <username>${{ secrets.SONATYPE_USER }}</username>
               <password>${{ secrets.SONATYPE_PASS }}</password>
+              <passphrase>${{ secrets.GPG_PASSPHRASE }}</passphrase>
             </server>
           </servers>
         </settings>" > ~/.m2/settings.xml
