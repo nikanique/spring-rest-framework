@@ -24,9 +24,9 @@ jobs:
     - name: Build with Maven
       run: mvn clean install
 
-    - name: Ensure test directories exist
+    - name: Ensure test directories and add a sample test
       run: |
-        mkdir -p src/test/java
+        mkdir -p src/test/java/io/github/nikanique
         mkdir -p src/test/resources
         echo "package io.github.nikanique; 
               import org.junit.jupiter.api.Test; 
