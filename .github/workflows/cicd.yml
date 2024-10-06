@@ -1,4 +1,4 @@
-name: Publish package to the Maven Central Repository
+name: Publish package to GitHub Packages
 
 on:
   release:
@@ -24,46 +24,15 @@ jobs:
     - name: Build with Maven
       run: mvn clean install
 
-    - name: Ensure test directories and add a sample test
-      run: |
-        mkdir -p src/test/java/io/github/nikanique
-        mkdir -p src/test/resources
-        echo "package io.github.nikanique; 
-              import org.junit.jupiter.api.Test; 
-              import static org.junit.jupiter.api.Assertions.assertTrue; 
-              public class SampleTest { 
-                @Test 
-                public void testSample() { 
-                  assertTrue(true); 
-                } 
-              }" > src/test/java/io/github/nikanique/SampleTest.java
-
-    - name: Run Tests
-      run: mvn test
-
-    - name: Cache Maven packages
-      uses: actions/cache@v3
-      with:
-        path: ~/.m2/repository
-        key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-        restore-keys: |
-          ${{ runner.os }}-maven-
-
-    - name: Get release version
-      id: get_version
-      run: |
-        echo "RELEASE_VERSION=$(echo ${{ github.event.release.tag_name }} | sed 's/^v//')" >> $GITHUB_ENV
-
-    - name: Configure Maven settings
+    - name: Configure Maven settings for GitHub Packages
       run: |
         mkdir -p ~/.m2
         echo "<settings>
           <servers>
             <server>
-              <id>ossrh</id>
-              <username>${{ secrets.SONATYPE_USER }}</username>
-              <password>${{ secrets.SONATYPE_PASS }}</password>
-              <passphrase>${{ secrets.GPG_PASSPHRASE }}</passphrase>
+              <id>github</id>
+              <username>${{ secrets.GITHUB_ACTOR }}</username>
+              <password>${{ secrets.GITHUB_TOKEN }}</password>
             </server>
           </servers>
         </settings>" > ~/.m2/settings.xml
@@ -76,34 +45,4 @@ jobs:
       shell: bash
 
     - name: Sign and package JAR
-      run: mvn verify -Dgpg.executable=gpg -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Dgpg.skip=false
-
-    - name: Deploy to Maven Central
-      run: mvn --batch-mode deploy -P release -Drelease-version=${{ env.RELEASE_VERSION }} -DskipTests
-      env:
-        GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
-        GPG_KEY_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-
-    - name: Clean up Maven settings
-      run: rm -rf ~/.m2/settings.xml
-
-  release:
-    needs: build-and-deploy
-    runs-on: ubuntu-latest
-    steps:
-    - name: Create a Release
-      uses: actions/create-release@v1
-      with:
-        tag_name: ${{ github.event.release.tag_name }}
-        release_name: 'Release ${{ github.event.release.tag_name }}'
-        draft: false
-        prerelease: false
-        generate_release_notes: true
-
-    - name: Upload JAR to Release
-      uses: actions/upload-release-asset@v1
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: target/*.jar
-        asset_name: spring-rest-framework-${{ env.RELEASE_VERSION }}.jar
-        asset_content_type: application/java-archive
+      run: mvn verify -Dgpg.executable=gpg -Dgpg.passphrase=${{ secrets.GPG_PAS
