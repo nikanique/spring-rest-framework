@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="UTF-8"?>
+ <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
@@ -71,6 +71,8 @@
             <scope>provided</scope>
         </dependency>
     </dependencies>
+
+    <!-- تغییرات اصلی در این بخش است: پیکربندی برای انتشار به GitHub Packages -->
     <distributionManagement>
         <repository>
             <id>github</id>
@@ -91,7 +93,7 @@
                 <version>1.7.0</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>github</serverId> 
+                    <serverId>github</serverId> <!-- استفاده از GitHub به جای Nexus -->
                     <nexusUrl>https://maven.pkg.github.com/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
@@ -129,7 +131,7 @@
                                 <arg>loopback</arg>
                             </gpgArguments>
                             <useAgent>false</useAgent>
-                            <passphraseServerId>github</passphraseServerId> 
+                            <passphraseServerId>github</passphraseServerId> <!-- استفاده از GitHub به جای ossrh -->
                         </configuration>
                     </plugin>
                     <plugin>
