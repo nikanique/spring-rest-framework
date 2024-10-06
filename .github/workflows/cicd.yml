@@ -55,7 +55,7 @@ jobs:
 
     - name: Import GPG key
       run: |
-        echo "${{ secrets.EXISTING_GPG_KEY }}" | gpg --import
+        echo "${{ secrets.EXISTING_GPG_KEY }}" | base64 --decode | gpg --import
 
     - name: Sign and package JAR
       run: mvn verify -Dgpg.executable=gpg -Dgpg.passphrase=${{ secrets.EXISTING_GPG_PASSPHRASE }} -Dgpg.skip=false
