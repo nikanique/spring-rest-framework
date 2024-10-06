@@ -67,18 +67,21 @@ jobs:
           </servers>
         </settings>" > ~/.m2/settings.xml
 
-    - name: Import GPG key
+    - name: Decrypt GPG key and import
       run: |
-        echo "${{ secrets.EXISTING_GPG_KEY }}" | base64 --decode | gpg --import
+        echo "${{ secrets.GPG_PRIVATE_KEY_BASE64 }}" | base64 --decode > private.key.gpg
+        gpg --batch --yes --passphrase "${{ secrets.GPG_PASSPHRASE }}" --decrypt private.key.gpg > private.key
+        gpg --import private.key
+      shell: bash
 
     - name: Sign and package JAR
-      run: mvn verify -Dgpg.executable=gpg -Dgpg.passphrase=${{ secrets.EXISTING_GPG_PASSPHRASE }} -Dgpg.skip=false
+      run: mvn verify -Dgpg.executable=gpg -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Dgpg.skip=false
 
     - name: Deploy to Maven Central
       run: mvn --batch-mode deploy -P release -Drelease-version=${{ env.RELEASE_VERSION }} -DskipTests
       env:
-        GPG_KEY_ID: ${{ secrets.EXISTING_GPG_KEY_ID }}
-        GPG_KEY_PASSPHRASE: ${{ secrets.EXISTING_GPG_PASSPHRASE }}
+        GPG_KEY_ID: ${{ secrets.GPG_KEY_ID }}
+        GPG_KEY_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
 
     - name: Clean up Maven settings
       run: rm -rf ~/.m2/settings.xml
