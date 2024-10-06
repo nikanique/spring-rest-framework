@@ -37,6 +37,17 @@ jobs:
           </servers>
         </settings>" > ~/.m2/settings.xml
 
+    - name: Decrypt GPG key and import
+      run: |
+        echo "${{ secrets.GPG_PRIVATE_KEY_BASE64 }}" | base64 --decode > private.key.gpg
+        gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --decrypt private.key.gpg > private.key
+        gpg --batch --yes --import private.key
+      env:
+        GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
+
+    - name: Sign and package JAR
+      run: mvn verify -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} -Dgpg.skip=false
+
     - name: Deploy to GitHub Packages
       run: mvn --batch-mode deploy -P release -DskipTests
       env:
