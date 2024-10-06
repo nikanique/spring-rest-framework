@@ -1,4 +1,4 @@
-name: Publish package to GitHub Packages
+ name: Publish package to GitHub Packages
 
 on:
   release:
@@ -37,12 +37,10 @@ jobs:
           </servers>
         </settings>" > ~/.m2/settings.xml
 
-    - name: Decrypt GPG key and import
-      run: |
-        echo "${{ secrets.GPG_PRIVATE_KEY_BASE64 }}" | base64 --decode > private.key.gpg
-        gpg --batch --yes --pinentry-mode loopback --passphrase "${{ secrets.GPG_PASSPHRASE }}" --decrypt private.key.gpg > private.key
-        gpg --batch --yes --import private.key
-      shell: bash
+    - name: Deploy to GitHub Packages
+      run: mvn --batch-mode deploy -P release -DskipTests
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Sign and package JAR
-      run: mvn verify -Dgpg.executable=gpg -Dgpg.passphrase=${{ secrets.GPG_PAS
+    - name: Clean up Maven settings
+      run: rm -rf ~/.m2/settings.xml
