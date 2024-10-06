@@ -18,7 +18,7 @@
         and flexibility of Django's REST Framework to Spring. SRF streamlines API development with powerful
         serialization, flexible filters, and seamless integration.
     </description>
-    <url></url>
+    <url>https://github.com/nikanique/spring-rest-framework</url>
     <licenses>
         <license>
             <name>BSD License</name>
@@ -126,6 +126,8 @@
                                 <arg>--pinentry-mode</arg>
                                 <arg>loopback</arg>
                             </gpgArguments>
+                            <useAgent>false</useAgent>
+                            <passphraseServerId>ossrh</passphraseServerId> <!-- این شناسه باید با سرور Maven شما مطابقت داشته باشد -->
                         </configuration>
                     </plugin>
                     <plugin>
