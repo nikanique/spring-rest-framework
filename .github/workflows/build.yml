@@ -56,6 +56,8 @@ jobs:
 
       - name: Fetch PR Commits
         id: fetch_commits
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Fetch all commits from the merged PR
           COMMITS=$(gh pr view ${GITHUB_REF#refs/heads/} --json commits --jq '.commits[].message')
