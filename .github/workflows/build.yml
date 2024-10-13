@@ -54,33 +54,6 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Fetch PR Commits
-        id: fetch_commits
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          # Fetch all commits from the merged PR
-          COMMITS=$(gh pr view ${GITHUB_REF#refs/heads/} --json commits --jq '.commits[].message')
-          echo "$COMMITS" > commits.txt
-          echo "COMMIT_MESSAGES<<EOF" >> $GITHUB_ENV
-          echo "$COMMITS" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-
-      - name: Check for 'fix' or 'feature' in commit messages
-        id: check_commits
-        run: |
-          if grep -qE '(fix|feature)' commits.txt; then
-            echo "contains_keyword=true" >> $GITHUB_ENV
-          else
-            echo "contains_keyword=false" >> $GITHUB_ENV
-          fi
-
-      - name: Exit if no relevant commits
-        if: env.contains_keyword == 'false'
-        run: |
-          echo "No relevant commits found. Exiting."
-          exit 0
-
       - name: Extract Version from pom.xml
         id: version
         run: |
@@ -104,3 +77,4 @@ jobs:
           gh release create "v${VERSION}" ./artifact/*.jar \
           --title "Release v${VERSION}" \
           --notes "Automated release of version v${VERSION}"
+
