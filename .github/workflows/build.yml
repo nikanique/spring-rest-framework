@@ -72,9 +72,9 @@ jobs:
       - name: Create GitHub Release
         env:
           VERSION: ${{ env.VERSION }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           gh release create "v${VERSION}" ./artifact/*.jar \
           --title "Release v${VERSION}" \
           --notes "Automated release of version v${VERSION}"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
