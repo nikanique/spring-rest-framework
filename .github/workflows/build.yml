@@ -103,6 +103,11 @@ jobs:
         if: github.ref == 'refs/heads/develop'
         run: mvn versions:set -DnewVersion=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)-beta
 
+      - name: Ensure GPG directory exists
+        run: |
+          mkdir -p ~/.gnupg
+          chmod 700 ~/.gnupg
+          
       - name: Set GPG_TTY
         run: echo "GPG_TTY=$(tty)" >> $GITHUB_ENV
 
