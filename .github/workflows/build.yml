@@ -128,4 +128,4 @@ jobs:
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-        run: (echo "<settings><servers><server><id>central</id><username>$MAVEN_USERNAME</username><password>$MAVEN_PASSWORD</password></server></servers></settings>"> setting.xml) && mvn deploy Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} --settings setting.xml && rm setting.xml
+        run: (echo "<settings><servers><server><id>central</id><username>$MAVEN_USERNAME</username><password>$MAVEN_PASSWORD</password></server></servers></settings>"> setting.xml) && mvn deploy -Dgpg.passphrase=${{ secrets.GPG_PASSPHRASE }} --settings setting.xml && rm setting.xml
