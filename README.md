@@ -1,5 +1,9 @@
+<div style="text-align: center;">
+
 # Spring REST Framework
 
+<img src="srf.png" alt="Spring REST Framework" width="50%">
+</div>
 Spring REST Framework is a powerful and flexible toolkit for building REST APIs in Spring, inspired by Django REST
 framework.
 
