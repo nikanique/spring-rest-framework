@@ -59,7 +59,7 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
      * }
      * </pre>
      *
-     * @return Class<?>
+     * @return
      */
     protected abstract Class<?> getDTO();
 
