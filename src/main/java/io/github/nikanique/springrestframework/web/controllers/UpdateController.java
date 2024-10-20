@@ -21,6 +21,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * This interface provides methods for updating entities.
+ *
+ * @param <Model> The model you want to list the records of (eg. User)
+ * @param <ID>    Type of model's primary key (id)
+ */
 public interface UpdateController<Model, ID> extends RequestBodyProvider {
 
     Class<?> getUpdateRequestBodyDTO();
@@ -39,7 +45,7 @@ public interface UpdateController<Model, ID> extends RequestBodyProvider {
         searchCriteriaList = controller.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.getQueryService().getObject(searchCriteriaList);
+        Optional<Object> optionalEntity = getObject(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
@@ -56,13 +62,18 @@ public interface UpdateController<Model, ID> extends RequestBodyProvider {
         );
     }
 
+    default Optional<Object> getObject(List<SearchCriteria> searchCriteriaList) {
+        Optional<Object> optionalEntity = this.getQueryService().getObject(searchCriteriaList);
+        return optionalEntity;
+    }
+
     default ResponseEntity<ObjectNode> partialUpdate(BaseGenericController controller, Object lookupValue, HttpServletRequest request) throws Throwable {
         // Create search criteria from lookup value
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = controller.filterByRequest(request, searchCriteriaList);
 
         // Retrieve the entity using specification
-        Optional<Object> optionalEntity = this.getQueryService().getObject(searchCriteriaList);
+        Optional<Object> optionalEntity = getObject(searchCriteriaList);
         if (!optionalEntity.isPresent()) {
             return ResponseEntity.notFound().build();
         }
