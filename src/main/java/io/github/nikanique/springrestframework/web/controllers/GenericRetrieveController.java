@@ -20,6 +20,35 @@ import org.springframework.web.method.HandlerMethod;
 
 import java.lang.reflect.Method;
 
+/**
+ * The GenericRetrieveController class is a generic controller designed for use in Spring Boot applications for retrieving model's records.
+ * It provides a common implementation for retrieving a single record from a repository with a variety of filtering options.
+ * This class is particularly useful when you need to build REST APIs for managing database records where retrieval
+ * functionalities are required. It exposes endpoint with GET method with path variable.
+ * <p>
+ * Example:
+ * <pre>
+ *     {@code
+ * @RequestMapping("/student")
+ * @RestController
+ * @Tag(name = "Student")
+ * public class StudentController extends GenericRetrieveController<Student, Long, StudentRepository> {
+ *     public StudentController(StudentRepository repository) {
+ *         super(repository);
+ *     }
+ *
+ *     @Override
+ *     protected Class<?> getDTO() {
+ *         return StudentDto.class;
+ *     }
+ * }
+ * }
+ * </pre>
+ *
+ * @param <Model>           The class type of the entity (e.g., Student).
+ * @param <ID>              The type of the model’s identifier (e.g., Long).
+ * @param <ModelRepository> The repository interface extending JpaRespository and JpaSpecificationExecutor (e.g., StudentRepository).
+ */
 @Getter
 public abstract class GenericRetrieveController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>

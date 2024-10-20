@@ -22,6 +22,35 @@ import java.lang.reflect.Method;
 import java.util.Set;
 import java.util.TreeSet;
 
+/**
+ * The GenericListController class is a generic controller designed for use in Spring Boot applications for listing model's records.
+ * It provides a common implementation for listing records from a repository with a variety of filtering options.
+ * This class is particularly useful when you need to build REST APIs for managing database records where listing
+ * and filtering functionalities are required. It exposes endpoint with GET method.
+ * <p>
+ * Example:
+ * <pre>
+ *     {@code
+ * @RequestMapping("/student")
+ * @RestController
+ * @Tag(name = "Student")
+ * public class StudentController extends GenericListController<Student, Long, StudentRepository> {
+ *     public StudentController(StudentRepository repository) {
+ *         super(repository);
+ *     }
+ *
+ *     @Override
+ *     protected Class<?> getDTO() {
+ *         return StudentDto.class;
+ *     }
+ * }
+ * }
+ * </pre>
+ *
+ * @param <Model>           The class type of the entity (e.g., Student).
+ * @param <ID>              The type of the model’s identifier (e.g., Long).
+ * @param <ModelRepository> The repository interface extending JpaRespository and JpaSpecificationExecutor (e.g., StudentRepository).
+ */
 @Getter
 public abstract class GenericListController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>

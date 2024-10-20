@@ -13,6 +13,12 @@ import org.springframework.http.ResponseEntity;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This interface provides methods for deleting entities.
+ *
+ * @param <Model> The model
+ * @param <ID>    Type of model's primary key (id)
+ */
 public interface DeleteController<Model, ID> {
     QueryService<Model> getQueryService();
 
