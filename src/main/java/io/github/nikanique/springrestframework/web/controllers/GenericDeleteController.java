@@ -12,6 +12,33 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.web.method.HandlerMethod;
 
+/**
+ * The GenericDeleteController class is a generic controller designed for use in Spring Boot applications for deleting model's records.
+ * It provides a common implementation for deleting records. It exposes endpoint with DELETE method.
+ * This class is particularly useful when you need to build REST APIs for creating records.
+ * <p>
+ * Example:
+ * <pre>
+ *     {@code
+ * @RequestMapping("/student")
+ * @RestController
+ * @Tag(name = "Student")
+ * public class StudentController extends GenericDeleteController<Student, Long, StudentRepository> {
+ *     public StudentController(StudentRepository repository) {
+ *         super(repository);
+ *     }
+ *
+ *     @Override
+ *     protected Class<?> getDTO() {
+ *         return StudentDto.class;
+ *     }
+ * }
+ * }</pre>
+ *
+ * @param <Model>
+ * @param <ID>
+ * @param <ModelRepository>
+ */
 @Getter
 public abstract class GenericDeleteController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository> implements DeleteController<Model, ID> {

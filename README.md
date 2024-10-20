@@ -1,9 +1,8 @@
-<div style="text-align: center;">
-
 # Spring REST Framework
 
+<p align="center">
 <img src="srf.png" alt="Spring REST Framework" width="50%">
-</div>
+</p>
 Spring REST Framework is a powerful and flexible toolkit for building REST APIs in Spring, inspired by Django REST
 framework.
 
@@ -46,7 +45,7 @@ To install the Spring REST Framework, include the following dependencies in your
     <dependency>
         <groupId>io.github.nikanique</groupId>
         <artifactId>spring-rest-framework</artifactId>
-        <version>1.0.0-beta</version>
+        <version>1.0.1</version>
     </dependency>
 </dependencies>
 ```
@@ -59,17 +58,18 @@ To start using the library, follow these steps:
    Add the required dependencies into your project following the
    installation section.
 
-2. Declare your models and repositories:
+
+2. 2.Declare your models and repositories:
 
    For example, declare a Student model.
 
    ```java
-
+ 
     import jakarta.persistence.Entity;
     import jakarta.persistence.GenerationType;
     import jakarta.persistence.Id;
     import lombok.Data;
-    
+     
     @Entity
     @Data
     public class Student {
@@ -79,9 +79,9 @@ To start using the library, follow these steps:
     private String fullName;
     private Integer age;
     private String major;
-    
+     
     }
-
+ 
    ```
    Create Repository for you model.
     ```java
@@ -89,7 +89,7 @@ To start using the library, follow these steps:
     import org.springframework.data.jpa.repository.JpaRepository;
     import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
     import org.springframework.stereotype.Repository;
-    
+     
     @Repository
     public interface StudentRepository extends JpaRepository<Student, Long>, JpaSpecificationExecutor<Student> {
     }
@@ -102,30 +102,31 @@ To start using the library, follow these steps:
    import io.github.nikanique.springrestframework.annotation.ReadOnly;
    import io.github.nikanique.springrestframework.dto.Dto;
    import lombok.Data;
-
+  
    @Data
    public class StudentDto extends Dto{
-
+  
     @Expose(source = "name")
     private String firstName;
     private Integer age;
-    private String color;
-   
+    private String major;
+     
     @ReadOnly
     private Long id;
    }
    ```
-   Create your Controller by extending **QueryController** which will generate List and Retrieve endpoint for you.
+   Create your Controller by extending **GenericQueryController** which will generate List and Retrieve endpoint for
+   you.
 
    ```java
-    @RequestMapping("/student")
+    import io.github.nikanique.springrestframework.web.controllers.GenericQueryController;@RequestMapping("/student")
     @RestController
     @Tag(name = "Student")
-    public class StudentController extends QueryController<Student, Long, StudentRepository> {
+    public class StudentController extends GenericQueryController<Student, Long, StudentRepository> {
         public StudentController(StudentRepository repository) {
             super(repository);
         }
-    
+      
         @Override
         protected Class<?> getDTO() {
             return Student.class;
@@ -133,6 +134,63 @@ To start using the library, follow these steps:
     }  
    ```
 
+   Add desired filters to the endpoint by using **FilterSet** class:
+
+   ```java
+    import io.github.nikanique.springrestframework.web.controllers.GenericQueryController;
+            
+    @RequestMapping("/student")
+    @RestController
+    @Tag(name = "Student")
+    public class StudentController extends GenericQueryController<Student, Long, StudentRepository> {
+        public StudentController(StudentRepository repository) {
+            super(repository);
+        }
+      
+        @Override
+        protected Class<?> getDTO() {
+            return Student.class;
+        }
+       @Override
+       protected FilterSet configFilterSet() {
+            return FilterSet.builder()
+                   .addFilter("name", FilterOperation.CONTAINS, FieldType.STRING)
+                    .build();
+         }
+  
+    }  
+    ```
+   Specify allowed fields to order the result by using **configAllowedOrderByFields** method:
+
+   ```java
+    import io.github.nikanique.springrestframework.web.controllers.GenericQueryController;
+            
+    @RequestMapping("/student")
+    @RestController
+    @Tag(name = "Student")
+    public class StudentController extends GenericQueryController<Student, Long, StudentRepository> {
+        public StudentController(StudentRepository repository) {
+            super(repository);
+        }
+      
+        @Override
+        protected Class<?> getDTO() {
+            return Student.class;
+        }
+       @Override
+       protected FilterSet configFilterSet() {
+            return FilterSet.builder()
+                   .addFilter("name", FilterOperation.CONTAINS, FieldType.STRING)
+                    .build();
+         }
+       
+       @Override
+       public Set<String> configAllowedOrderByFields() {
+        return Set.of("name", "id");
+
+       }
+    }  
+    ```
 4. Run your application, and enjoy your APIs:
 
 ![spring-rest-framework-api.jpg](smaple_images/spring-rest-framework-api.jpg)
