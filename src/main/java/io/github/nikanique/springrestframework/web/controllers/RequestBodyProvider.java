@@ -5,6 +5,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.io.BufferedReader;
 import java.io.IOException;
 
+/**
+ * This interface provides methods for getting request body as a string.
+ */
 public interface RequestBodyProvider {
 
     default String getRequestBody(HttpServletRequest request) throws IOException {

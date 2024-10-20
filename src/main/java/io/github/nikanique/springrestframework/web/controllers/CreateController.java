@@ -17,6 +17,12 @@ import org.springframework.http.ResponseEntity;
 
 import java.io.IOException;
 
+/**
+ * This interface provides methods for creating entities.
+ *
+ * @param <Model> The model
+ * @param <ID>    Type of model's primary key (id)
+ */
 public interface CreateController<Model, ID> extends RequestBodyProvider {
     SerializerConfig getCreateResponseSerializerConfig();
 

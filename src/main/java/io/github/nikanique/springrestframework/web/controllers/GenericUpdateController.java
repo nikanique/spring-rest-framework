@@ -21,6 +21,35 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.method.HandlerMethod;
 
+/**
+ * The GenericUpdateController class is a generic controller designed for use in Spring Boot applications for updating model's records.
+ * It provides a common implementation for updating records. It exposes endpoint with PUT and PATCH methods.
+ * The PUT method is used for updating records, while The PATCH method is used for updating records partially.
+ * both methods accept path variable lookup value.
+ * <p>
+ * Example:
+ * <pre>
+ *     {@code
+ * @RequestMapping("/student")
+ * @RestController
+ * @Tag(name = "Student")
+ * public class StudentController extends GenericUpdateController<Student, Long, StudentRepository> {
+ *     public StudentController(StudentRepository repository) {
+ *         super(repository);
+ *     }
+ *
+ *     @Override
+ *     protected Class<?> getDTO() {
+ *         return StudentDto.class;
+ *     }
+ * }
+ * }
+ * </pre>
+ *
+ * @param <Model>
+ * @param <ID>
+ * @param <ModelRepository>
+ */
 @Getter
 public abstract class GenericUpdateController<Model, ID, ModelRepository extends JpaRepository<Model, ID> & JpaSpecificationExecutor<Model>>
         extends BaseGenericController<Model, ID, ModelRepository>

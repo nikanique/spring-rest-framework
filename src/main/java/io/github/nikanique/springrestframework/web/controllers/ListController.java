@@ -28,6 +28,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * This interface provides methods for listing entities.
+ *
+ * @param <Model> The model you want to list the records of (eg. User)
+ */
 @SuppressWarnings("ALL")
 public interface ListController<Model> {
 

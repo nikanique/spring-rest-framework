@@ -16,7 +16,13 @@ import org.springframework.web.method.HandlerMethod;
 import java.lang.reflect.ParameterizedType;
 import java.util.List;
 
-
+/**
+ * This is abstract controller. It is a base controller for all generic controllers.
+ *
+ * @param <Model>           The model
+ * @param <ID>              Type of model's primary key (id)
+ * @param <ModelRepository> Type of model's repository
+ */
 public abstract class BaseGenericController<Model, ID, ModelRepository extends JpaRepository<Model, ID>>
         implements ApplicationContextAware {
 
@@ -40,6 +46,21 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
 
     public abstract void customizeOperationForController(Operation operation, HandlerMethod handlerMethod);
 
+    /**
+     * This method must be overridden to return the class type of the DTO (Data Transfer Object)
+     * that the controller will use to serialize/deserialize the model’s records/request's body.
+     * Note that the DTO class must be a subclass of Dto class.
+     * <pre>
+     * {@code
+     * @Override
+     * protected Class<?> getDTO() {
+     *     return StudentDto.class;
+     * }
+     * }
+     * </pre>
+     *
+     * @return
+     */
     protected abstract Class<?> getDTO();
 
     protected Class<Model> getModel() {

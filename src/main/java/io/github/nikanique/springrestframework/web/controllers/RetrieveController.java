@@ -19,6 +19,11 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * This interface provides methods for retrieving entities.
+ *
+ * @param <Model> The model you want to retrieve the records of (eg. User)
+ */
 public interface RetrieveController<Model> {
 
     QueryService<Model> getQueryService();
@@ -33,11 +38,16 @@ public interface RetrieveController<Model> {
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, getLookupFilter());
         searchCriteriaList = controller.filterByRequest(request, searchCriteriaList);
 
-        Optional<Object> optionalEntity = getQueryService().getObject(searchCriteriaList, getQueryMethod());
+        Optional<Object> optionalEntity = getObject(searchCriteriaList);
         return optionalEntity.map(entity -> ResponseEntity.ok(
                         controller.getSerializer().serialize(entity, getRetrieveSerializerConfig())
                 ))
                 .orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    private Optional<Object> getObject(List<SearchCriteria> searchCriteriaList) throws Throwable {
+        Optional<Object> optionalEntity = getQueryService().getObject(searchCriteriaList, getQueryMethod());
+        return optionalEntity;
     }
 
 

@@ -16,6 +16,33 @@ import org.springframework.web.method.HandlerMethod;
 
 import java.io.IOException;
 
+/**
+ * The GenericCreateController class is a generic controller designed for use in Spring Boot applications for creating model's records.
+ * It provides a common implementation for creating records. It exposes endpoint with POST method.
+ * This class is particularly useful when you need to build REST APIs for creating records.
+ * <p>
+ * Example:
+ * <pre>
+ *     {@code
+ * @RequestMapping("/student")
+ * @RestController
+ * @Tag(name = "Student")
+ * public class StudentController extends GenericCreateController<Student, Long, StudentRepository> {
+ *     public StudentController(StudentRepository repository) {
+ *         super(repository);
+ *     }
+ *
+ *     @Override
+ *     protected Class<?> getDTO() {
+ *         return StudentDto.class;
+ *     }
+ * }
+ * }</pre>
+ *
+ * @param <Model>
+ * @param <ID>
+ * @param <ModelRepository>
+ */
 @Getter
 public abstract class GenericCreateController<Model, ID, ModelRepository extends JpaRepository<Model, ID>>
         extends BaseGenericController<Model, ID, ModelRepository>
