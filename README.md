@@ -202,7 +202,7 @@ To start using the library, follow these steps:
     ```
 4. Run your application, and enjoy your APIs:
 
-![spring-rest-framework-api.jpg](smaple_images/spring-rest-framework-api.png)
+![spring-rest-framework-api.png](smaple_images/spring-rest-framework-api.png)
 
 ## License
 
