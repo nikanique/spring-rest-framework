@@ -9,7 +9,7 @@ framework.
 ## Features
 
 - **Developer-Friendly**: Effortlessly generates web APIs while eliminating the need for
-  boilerplate code, simplifying the task of exposing standard endpoints (GET, POST, PUT, PATCH) for each ORM entity.
+  boilerplate code, simplifying the task of exposing standard endpoints (GET, POST, PUT, PATCH) for ORM entity.
 - **Serialization**: The comprehensive and flexible serializer, integrated with Spring Data JPA, assists developers in
   customizing the input and output in web APIs.
 - **Filters**: Offers flexibility and powerful filtering in APIs to query data from database.
@@ -203,6 +203,11 @@ To start using the library, follow these steps:
 4. Run your application, and enjoy your APIs:
 
 ![spring-rest-framework-api.png](smaple_images/spring-rest-framework-api.png)
+
+## Documentation
+
+For detailed documentation and examples, visit the
+project's [Documentation](https://spring-rest-framework-tutorial.readthedocs.io/en/latest/).
 
 ## License
 
