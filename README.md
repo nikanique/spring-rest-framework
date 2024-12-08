@@ -136,7 +136,7 @@ To start using the library, follow these steps:
       
         @Override
         protected Class<?> getDTO() {
-            return Student.class;
+            return StudentDto.class;
         }
     }  
    ```
