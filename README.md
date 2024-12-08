@@ -156,7 +156,7 @@ To start using the library, follow these steps:
       
         @Override
         protected Class<?> getDTO() {
-            return Student.class;
+            return StudentDto.class;
         }
        @Override
        protected FilterSet configFilterSet() {
@@ -184,7 +184,7 @@ To start using the library, follow these steps:
       
         @Override
         protected Class<?> getDTO() {
-            return Student.class;
+            return StudentDto.class;
         }
        @Override
        protected FilterSet configFilterSet() {
