@@ -120,7 +120,7 @@ public abstract class GenericQueryController<Model, ID, ModelRepository extends 
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String sortBy,
             @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws Throwable {
-
+        this.authorizeRequest("GET");
         return this.list(this, request, page, size, sortBy, direction);
     }
 
@@ -128,7 +128,7 @@ public abstract class GenericQueryController<Model, ID, ModelRepository extends 
     public ResponseEntity<ObjectNode> getByLookupValue(
             HttpServletRequest request,
             @PathVariable(name = "lookup") Object lookupValue) throws Throwable {
-
+        this.authorizeRequest("GET");
         return this.retrieve(this, request, lookupValue);
     }
 

@@ -1,6 +1,7 @@
 package io.github.nikanique.springrestframework.web.controllers;
 
 
+import io.github.nikanique.springrestframework.exceptions.UnauthorizedException;
 import io.github.nikanique.springrestframework.orm.SearchCriteria;
 import io.github.nikanique.springrestframework.serializer.Serializer;
 import io.swagger.v3.oas.models.Operation;
@@ -11,10 +12,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.method.HandlerMethod;
 
 import java.lang.reflect.ParameterizedType;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * This is abstract controller. It is a base controller for all generic controllers.
@@ -31,11 +36,15 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
     @Getter
     protected Serializer serializer;
     protected ApplicationContext context;
+    private Map<String, List<String>> endpointsRequiredAuthorities;
 
     @Autowired
     public BaseGenericController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
         this.repository = repository;
+        this.endpointsRequiredAuthorities = new HashMap<>();
+        this.configRequiredAuthorities(this.endpointsRequiredAuthorities);
     }
+
 
     @Override
     @Autowired
@@ -78,4 +87,33 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
         this.serializer = serializer;
     }
 
+    protected void configRequiredAuthorities(Map<String, List<String>> authorities) {
+        authorities.put("GET", null);
+        authorities.put("POST", null);
+        authorities.put("PUT", null);
+        authorities.put("PATCH", null);
+        authorities.put("DELETE", null);
+    }
+
+    protected List<String> getRequiredAuthorities(String HttpMethod) {
+        return this.endpointsRequiredAuthorities.getOrDefault(HttpMethod, null);
+    }
+
+    protected boolean hasAuthorities(List<String> requiredAuthorities) {
+        if (requiredAuthorities == null) {
+            return true;
+        }
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        return requiredAuthorities.stream().anyMatch(authority ->
+                authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals(authority))
+        );
+    }
+
+    protected void authorizeRequest(String HttpMethod) {
+        List<String> requiredAuthorities = getRequiredAuthorities(HttpMethod);
+        if (!hasAuthorities(requiredAuthorities)) {
+            throw new UnauthorizedException("You do not have permission to perform this action.");
+        }
+    }
 }
