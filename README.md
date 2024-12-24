@@ -45,7 +45,7 @@ To install the Spring REST Framework, include the following dependencies in your
     <dependency>
         <groupId>io.github.nikanique</groupId>
         <artifactId>spring-rest-framework</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </dependency>
 </dependencies>
 ```
