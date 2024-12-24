@@ -9,7 +9,7 @@ framework.
 ## Features
 
 - **Developer-Friendly**: Effortlessly generates web APIs while eliminating the need for
-  boilerplate code, simplifying the task of exposing standard endpoints (GET, POST, PUT, PATCH) for each ORM entity.
+  boilerplate code, simplifying the task of exposing standard endpoints (GET, POST, PUT, PATCH) for ORM entity.
 - **Serialization**: The comprehensive and flexible serializer, integrated with Spring Data JPA, assists developers in
   customizing the input and output in web APIs.
 - **Filters**: Offers flexibility and powerful filtering in APIs to query data from database.
@@ -45,7 +45,7 @@ To install the Spring REST Framework, include the following dependencies in your
     <dependency>
         <groupId>io.github.nikanique</groupId>
         <artifactId>spring-rest-framework</artifactId>
-        <version>1.0.1</version>
+        <version>1.0.2</version>
     </dependency>
 </dependencies>
 ```
@@ -79,6 +79,10 @@ To start using the library, follow these steps:
     private String fullName;
     private Integer age;
     private String major;
+   
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "school_id")
+    private School school;
      
     }
  
@@ -106,11 +110,14 @@ To start using the library, follow these steps:
    @Data
    public class StudentDto extends Dto{
   
-    @Expose(source = "name")
-    private String firstName;
+    @Expose(source = "fullName")
+    private String name;
     private Integer age;
     private String major;
-     
+    
+    @Expose(source = "school__name")
+    private String SchoolName;    
+   
     @ReadOnly
     private Long id;
    }
@@ -129,7 +136,7 @@ To start using the library, follow these steps:
       
         @Override
         protected Class<?> getDTO() {
-            return Student.class;
+            return StudentDto.class;
         }
     }  
    ```
@@ -137,7 +144,7 @@ To start using the library, follow these steps:
    Add desired filters to the endpoint by using **FilterSet** class:
 
    ```java
-    import io.github.nikanique.springrestframework.web.controllers.GenericQueryController;
+    import io.github.nikanique.springrestframework.common.FieldType;import io.github.nikanique.springrestframework.filter.FilterOperation;import io.github.nikanique.springrestframework.web.controllers.GenericQueryController;
             
     @RequestMapping("/student")
     @RestController
@@ -149,18 +156,20 @@ To start using the library, follow these steps:
       
         @Override
         protected Class<?> getDTO() {
-            return Student.class;
+            return StudentDto.class;
         }
        @Override
        protected FilterSet configFilterSet() {
+            // Filters student with age greater than given value and school name contains given string
             return FilterSet.builder()
-                   .addFilter("name", FilterOperation.CONTAINS, FieldType.STRING)
-                    .build();
+                   .addFilter("age", FilterOperation.GREATER, FieldType.INTEGER)
+                   .addFilter("schoolName","school__name", FilterOperation.CONTAINS, FieldType.STRING)
+                   .build();
          }
   
     }  
     ```
-   Specify allowed fields to order the result by using **configAllowedOrderByFields** method:
+   Specify allowed fields to order the result using **configAllowedOrderByFields** method:
 
    ```java
     import io.github.nikanique.springrestframework.web.controllers.GenericQueryController;
@@ -175,12 +184,12 @@ To start using the library, follow these steps:
       
         @Override
         protected Class<?> getDTO() {
-            return Student.class;
+            return StudentDto.class;
         }
        @Override
        protected FilterSet configFilterSet() {
             return FilterSet.builder()
-                   .addFilter("name", FilterOperation.CONTAINS, FieldType.STRING)
+                    .addFilter("name", "fullName", FilterOperation.CONTAINS, FieldType.STRING)
                     .build();
          }
        
@@ -193,7 +202,12 @@ To start using the library, follow these steps:
     ```
 4. Run your application, and enjoy your APIs:
 
-![spring-rest-framework-api.jpg](smaple_images/spring-rest-framework-api.jpg)
+![spring-rest-framework-api.png](smaple_images/spring-rest-framework-api.png)
+
+## Documentation
+
+For detailed documentation and examples, visit the
+project's [Documentation](https://spring-rest-framework-tutorial.readthedocs.io/en/latest/).
 
 ## License
 

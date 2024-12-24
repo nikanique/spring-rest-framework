@@ -57,6 +57,8 @@ public class ModelSpecification<Model> implements Specification<Model> {
                 return createLessThanOrEqualToPredicate(builder, path, attributeType, value);
             case EQUAL:
                 return builder.equal(path, value);
+            case NOT_EQUAL:
+                return builder.notEqual(path, value);
             case CONTAINS:
                 if (attributeType == String.class) {
                     return builder.like(path.as(String.class), "%" + value + "%");
