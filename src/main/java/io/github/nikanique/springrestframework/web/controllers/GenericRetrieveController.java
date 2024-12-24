@@ -75,11 +75,7 @@ public abstract class GenericRetrieveController<Model, ID, ModelRepository exten
     private void postConstruct() {
         this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
-
-
-    protected Class<?> getListResponseDTO() {
-        return getDTO();
-    }
+    
 
     protected Class<?> getRetrieveResponseDTO() {
         return getDTO();
