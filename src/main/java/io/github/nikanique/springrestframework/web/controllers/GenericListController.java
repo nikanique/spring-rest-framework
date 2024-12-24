@@ -100,7 +100,7 @@ public abstract class GenericListController<Model, ID, ModelRepository extends J
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "") String sortBy,
             @RequestParam(defaultValue = "ASC") Sort.Direction direction) throws Throwable {
-
+        this.authorizeRequest("GET");
         return this.list(this, request, page, size, sortBy, direction);
     }
 

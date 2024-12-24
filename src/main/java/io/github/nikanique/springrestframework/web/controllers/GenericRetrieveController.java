@@ -75,7 +75,7 @@ public abstract class GenericRetrieveController<Model, ID, ModelRepository exten
     private void postConstruct() {
         this.queryService = QueryService.getInstance(this.getModel(), this.repository, this.context);
     }
-    
+
 
     protected Class<?> getRetrieveResponseDTO() {
         return getDTO();
@@ -93,7 +93,7 @@ public abstract class GenericRetrieveController<Model, ID, ModelRepository exten
     public ResponseEntity<ObjectNode> getByLookupValue(
             HttpServletRequest request,
             @PathVariable(name = "lookup") Object lookupValue) throws Throwable {
-
+        this.authorizeRequest("GET");
         return this.retrieve(this, request, lookupValue);
     }
 
