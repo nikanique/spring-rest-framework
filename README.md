@@ -8,19 +8,20 @@ framework.
 
 ## Features
 
-- **Developer-Friendly**: Effortlessly generates web APIs while eliminating the need for
-  boilerplate code, simplifying the task of exposing standard endpoints (GET, POST, PUT, PATCH) for ORM entity.
-- **Serialization**: The comprehensive and flexible serializer, integrated with Spring Data JPA, assists developers in
-  customizing the input and output in web APIs.
-- **Filters**: Offers flexibility and powerful filtering in APIs to query data from database.
+- **Developer-Friendly**: Simplifies API development by automatically generating web endpoints (GET, POST, PUT, PATCH)
+  for ORM entities, eliminating boilerplate code and streamlining common tasks.
+- **Serialization**: Robust and flexible serializer, seamlessly integrated with Spring Data JPA, enabling
+  easy customization of API input and output formats.
+- **Filtering**: Provides powerful and versatile filtering capabilities for querying data directly from the database.
+- **Validation**: Ensures reliable endpoint validation with a wide range of rules and supports custom validation for
+  user input.
+- **Security**: Built-in integration with Spring Security delivers secure access control, safeguarding APIs and
+  resources for authorized users.
 
 ## Requirements
 
 - Java 17+
 - Spring Boot 3.0.0+
-- Spring Data JPA
-- Spring Web MVC
-- SpringDoc OpenAPI WebMVC UI 2.1.0+
 
 ## Installation
 
@@ -29,23 +30,11 @@ To install the Spring REST Framework, include the following dependencies in your
 ```xml
 
 <dependencies>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-data-jpa</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-web</artifactId>
-    </dependency>
-    <dependency>
-        <groupId>org.springdoc</groupId>
-        <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-        <version>2.1.0</version>
-    </dependency>
+    <!-- Other dependencies -->
     <dependency>
         <groupId>io.github.nikanique</groupId>
         <artifactId>spring-rest-framework</artifactId>
-        <version>1.0.2</version>
+        <version>2.1.0</version>
     </dependency>
 </dependencies>
 ```
@@ -64,7 +53,6 @@ To start using the library, follow these steps:
    For example, declare a Student model.
 
    ```java
- 
     import jakarta.persistence.Entity;
     import jakarta.persistence.GenerationType;
     import jakarta.persistence.Id;
@@ -73,20 +61,21 @@ To start using the library, follow these steps:
     @Entity
     @Data
     public class Student {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String fullName;
-    private Integer age;
-    private String major;
-   
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "school_id")
-    private School school;
+       @Id
+       @GeneratedValue(strategy = GenerationType.IDENTITY)
+       private Long id;
+       private String fullName;
+       private Integer age;
+       private String major;
+      
+       @ManyToOne(fetch = FetchType.EAGER)
+       @JoinColumn(name = "school_id")
+       private School school;
      
     }
  
    ```
+
    Create Repository for you model.
     ```java
     import com.example.demo.model.Student;

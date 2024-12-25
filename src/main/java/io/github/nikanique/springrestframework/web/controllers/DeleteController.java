@@ -26,7 +26,7 @@ public interface DeleteController<Model, ID> {
 
     Filter getLookupFilter();
 
-    default ResponseEntity<Void> deleteObject(BaseGenericController controller, HttpServletRequest request, Object lookupValue) {
+    default ResponseEntity<Void> deleteObject(BaseGenericController controller, Object lookupValue, HttpServletRequest request) {
         List<SearchCriteria> searchCriteriaList = SearchCriteria.fromValue(lookupValue, this.getLookupFilter());
         searchCriteriaList = controller.filterByRequest(request, searchCriteriaList);
 

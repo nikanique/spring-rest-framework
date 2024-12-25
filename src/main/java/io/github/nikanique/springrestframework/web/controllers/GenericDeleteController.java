@@ -7,9 +7,13 @@ import io.github.nikanique.springrestframework.services.CommandService;
 import io.github.nikanique.springrestframework.services.QueryService;
 import io.swagger.v3.oas.models.Operation;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.method.HandlerMethod;
 
 /**
@@ -62,6 +66,12 @@ public abstract class GenericDeleteController<Model, ID, ModelRepository extends
 
     protected Filter configLookupFilter() {
         return new Filter("id", FilterOperation.EQUAL, FieldType.INTEGER);
+    }
+
+    @DeleteMapping("/{lookup}")
+    public ResponseEntity<Void> delete(HttpServletRequest request, @PathVariable(name = "lookup") Object lookupValue) {
+        this.authorizeRequest("DELETE");
+        return deleteObject(this, lookupValue, request);
     }
 
     public void customizeOperationForController(Operation operation, HandlerMethod handlerMethod) {

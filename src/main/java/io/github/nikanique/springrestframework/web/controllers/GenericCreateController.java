@@ -74,6 +74,7 @@ public abstract class GenericCreateController<Model, ID, ModelRepository extends
 
     @PostMapping("/")
     public ResponseEntity<ObjectNode> post(HttpServletRequest request) throws IOException {
+        this.authorizeRequest("POST");
         return this.create(this, request);
     }
 

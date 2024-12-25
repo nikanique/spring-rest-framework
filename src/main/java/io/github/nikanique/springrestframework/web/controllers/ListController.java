@@ -61,7 +61,7 @@ public interface ListController<Model> {
 
         Page<Object> entityPage = getQueryService().getPagedlist(searchCriteriaList, page, size, direction, sortColumn, getQueryMethod());
         List<ObjectNode> dtoList = entityPage.map(entity -> controller.getSerializer().serialize(entity, getListSerializerConfig())).getContent();
-        PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements());
+        PagedResponse<ObjectNode> response = new PagedResponse<>(dtoList, entityPage.getTotalElements(), "OK");
         return ResponseEntity.ok(response);
     }
 
