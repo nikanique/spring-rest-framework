@@ -45,8 +45,20 @@ public class FilterSet {
             return this;
         }
 
+        public FilterSetBuilder addFilter(String name, FilterOperation operation, FieldType fieldType, boolean required) {
+            Filter filter = new Filter(name, operation, fieldType, required);
+            filterSet.add(filter);
+            return this;
+        }
+
         public FilterSetBuilder addFilter(String name, FilterOperation operation, FieldType fieldType, String helpText) {
             Filter filter = new Filter(name, operation, fieldType, helpText);
+            filterSet.add(filter);
+            return this;
+        }
+
+        public FilterSetBuilder addFilter(String name, FilterOperation operation, FieldType fieldType, String helpText, boolean required) {
+            Filter filter = new Filter(name, operation, fieldType, helpText, required);
             filterSet.add(filter);
             return this;
         }
@@ -57,8 +69,25 @@ public class FilterSet {
             return this;
         }
 
+        public FilterSetBuilder addFilter(String name, String modelFieldName, FilterOperation operation, FieldType fieldType, boolean required) {
+            Filter filter = new Filter(name, modelFieldName, operation, fieldType, required);
+            filterSet.add(filter);
+            return this;
+        }
+
         public FilterSetBuilder addFilter(String name, String modelFieldName, FilterOperation operation, FieldType fieldType, String helpText) {
             Filter filter = new Filter(name, modelFieldName, operation, fieldType, helpText);
+            filterSet.add(filter);
+            return this;
+        }
+
+        public FilterSetBuilder addFilter(String name, String modelFieldName, FilterOperation operation, FieldType fieldType, String helpText, boolean required) {
+            Filter filter = new Filter(name, modelFieldName, operation, fieldType, helpText, required);
+            filterSet.add(filter);
+            return this;
+        }
+
+        public FilterSetBuilder addFilter(Filter filter) {
             filterSet.add(filter);
             return this;
         }
