@@ -70,7 +70,7 @@ public abstract class GenericDeleteController<Model, ID, ModelRepository extends
 
     @DeleteMapping("/{lookup}")
     public ResponseEntity<Void> delete(HttpServletRequest request, @PathVariable(name = "lookup") Object lookupValue) {
-        this.authorizeRequest("DELETE");
+        this.authorizeRequest(request);
         return deleteObject(this, lookupValue, request);
     }
 

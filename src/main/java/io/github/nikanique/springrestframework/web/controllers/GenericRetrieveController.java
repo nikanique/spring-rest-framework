@@ -93,7 +93,7 @@ public abstract class GenericRetrieveController<Model, ID, ModelRepository exten
     public ResponseEntity<ObjectNode> getByLookupValue(
             HttpServletRequest request,
             @PathVariable(name = "lookup") Object lookupValue) throws Throwable {
-        this.authorizeRequest("GET");
+        this.authorizeRequest(request);
         return this.retrieve(this, request, lookupValue);
     }
 

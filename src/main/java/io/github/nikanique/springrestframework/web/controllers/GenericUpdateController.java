@@ -99,13 +99,13 @@ public abstract class GenericUpdateController<Model, ID, ModelRepository extends
 
     @PutMapping("/{lookup}")
     public ResponseEntity<ObjectNode> update(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
-        this.authorizeRequest("PUT");
+        this.authorizeRequest(request);
         return this.update(this, lookupValue, request);
     }
 
     @PatchMapping("/{lookup}")
     public ResponseEntity<ObjectNode> patch(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
-        this.authorizeRequest("PATCH");
+        this.authorizeRequest(request);
         return this.partialUpdate(this, lookupValue, request);
     }
 
