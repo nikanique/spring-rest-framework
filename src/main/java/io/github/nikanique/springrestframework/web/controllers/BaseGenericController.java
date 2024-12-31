@@ -110,8 +110,8 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
         );
     }
 
-    protected void authorizeRequest(String HttpMethod) {
-        List<String> requiredAuthorities = getRequiredAuthorities(HttpMethod);
+    protected void authorizeRequest(HttpServletRequest request) {
+        List<String> requiredAuthorities = getRequiredAuthorities(request.getMethod().toUpperCase());
         if (!hasAuthorities(requiredAuthorities)) {
             throw new UnauthorizedException("You do not have permission to perform this action.");
         }

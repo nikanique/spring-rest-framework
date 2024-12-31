@@ -146,6 +146,13 @@ public class SearchCriteria {
                 String toParameterName = name + "To";
                 String fromValue = ServletRequestUtils.getStringParameter(request, fromParameterName, null);
                 String toValue = ServletRequestUtils.getStringParameter(request, toParameterName, null);
+
+                if (filter.isRequired() && (fromValue == null || toValue == null)) {
+                    throw new ValidationException(
+                            fromValue == null ? fromParameterName : toParameterName,
+                            "Both " + fromParameterName + " and " + toParameterName + " must be present.");
+                }
+
                 if (fromValue == null ^ toValue == null) {
                     throw new ValidationException(
                             fromValue == null ? fromParameterName : toParameterName,
@@ -162,6 +169,9 @@ public class SearchCriteria {
 
             } else {
                 value = ServletRequestUtils.getStringParameter(request, name, null);
+                if (filter.isRequired() && value == null) {
+                    throw new ValidationException(name, name + " is required");
+                }
                 if (value != null) {
                     Object parsedValue = extractAndValidateValue(name, filter, value);
                     SearchCriteria searchCriteria = new SearchCriteria(modelFieldName, filter.getOperation(), parsedValue, filter.getFieldType());

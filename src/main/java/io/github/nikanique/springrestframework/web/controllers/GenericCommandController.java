@@ -82,27 +82,27 @@ public abstract class GenericCommandController<Model, ID, ModelRepository extend
 
     @PostMapping("/")
     public ResponseEntity<ObjectNode> post(HttpServletRequest request) throws IOException {
-        this.authorizeRequest("POST");
+        this.authorizeRequest(request);
         return this.create(this, request);
     }
 
     @PutMapping("/{lookup}")
     public ResponseEntity<ObjectNode> put(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
-        this.authorizeRequest("PUT");
+        this.authorizeRequest(request);
         return this.update(this, lookupValue, request);
     }
 
 
     @PatchMapping("/{lookup}")
     public ResponseEntity<ObjectNode> patch(@PathVariable(name = "lookup") Object lookupValue, HttpServletRequest request) throws Throwable {
-        this.authorizeRequest("PATCH");
+        this.authorizeRequest(request);
         return this.partialUpdate(this, lookupValue, request);
     }
 
 
     @DeleteMapping("/{lookup}")
     public ResponseEntity<Void> delete(HttpServletRequest request, @PathVariable(name = "lookup") Object lookupValue) {
-        this.authorizeRequest("DELETE");
+        this.authorizeRequest(request);
         return this.deleteObject(this, lookupValue, request);
     }
 
