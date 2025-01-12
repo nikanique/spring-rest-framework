@@ -32,11 +32,10 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
         implements ApplicationContextAware {
 
     final protected ModelRepository repository;
-
+    private final Map<String, List<String>> endpointsRequiredAuthorities;
     @Getter
     protected Serializer serializer;
     protected ApplicationContext context;
-    private Map<String, List<String>> endpointsRequiredAuthorities;
 
     @Autowired
     public BaseGenericController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {

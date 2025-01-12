@@ -47,7 +47,7 @@ public class EntityBuilder<Model> {
             for (String fieldName : fieldMetadata.keySet()) {
                 Object fieldValue = fieldMetadata.get(fieldName).getGetterMethodHandle().invoke(dto);
                 ReadOnly readOnlyAnnotation = fieldMetadata.get(fieldName).getReadOnly();
-                if (readOnlyAnnotation != null) {
+                if (readOnlyAnnotation != null && fieldValue == null) {
                     ignoreProperties.add(fieldName);
                     continue;
                 }

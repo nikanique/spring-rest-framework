@@ -22,10 +22,15 @@ public class DtoManager {
             return Stream.of(cls.getDeclaredFields())
                     .map(field -> {
                         MethodHandle getterMethodHandle = null;
+                        MethodHandle setterMethodHandle = null;
                         try {
                             String getterName = "get" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
-                            MethodType methodType = MethodType.methodType(field.getType());
-                            getterMethodHandle = lookup.findVirtual(cls, getterName, methodType);
+                            String setterName = "set" + Character.toUpperCase(field.getName().charAt(0)) + field.getName().substring(1);
+                            MethodType getterMethodType = MethodType.methodType(field.getType());
+                            MethodType setterMethodType = MethodType.methodType(void.class, field.getType());
+                            getterMethodHandle = lookup.findVirtual(cls, getterName, getterMethodType);
+                            setterMethodHandle = lookup.findVirtual(cls, setterName, setterMethodType);
+
                         } catch (NoSuchMethodException | IllegalAccessException e) {
                             // Log the exception or handle it as per your requirement
                         }
@@ -35,7 +40,8 @@ public class DtoManager {
                                 field.getAnnotation(ReadOnly.class),
                                 field.getAnnotation(WriteOnly.class),
                                 field.getAnnotation(ReferencedModel.class),
-                                getterMethodHandle);
+                                getterMethodHandle,
+                                setterMethodHandle);
                     })
                     .collect(Collectors.toMap(fieldMetadata -> fieldMetadata.getField().getName(), fieldMetadata -> fieldMetadata));
         });

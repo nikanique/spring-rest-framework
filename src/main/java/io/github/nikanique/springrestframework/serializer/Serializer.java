@@ -5,10 +5,14 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.github.nikanique.springrestframework.annotation.ReadOnly;
 import io.github.nikanique.springrestframework.common.FieldType;
+import io.github.nikanique.springrestframework.dto.DtoManager;
+import io.github.nikanique.springrestframework.dto.FieldMetadata;
 import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
 import io.github.nikanique.springrestframework.utilities.StringUtils;
 import io.github.nikanique.springrestframework.utilities.ValueFormatter;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,10 +32,12 @@ import java.util.*;
 public class Serializer {
 
     private final ObjectMapper objectMapper;
+    private final EntityManager entityManager;
 
     @Autowired
-    public Serializer(ObjectMapper objectMapper) {
+    public Serializer(ObjectMapper objectMapper, EntityManager entityManager) {
         this.objectMapper = objectMapper;
+        this.entityManager = entityManager;
     }
 
     public Object deserialize(String requestBody, Class<?> dtoClass) throws IOException {
@@ -52,14 +58,30 @@ public class Serializer {
     }
 
     public Object deserialize(String requestBody, Class<?> dtoClass, Boolean raiseValidationError, Set<String> fields) throws IOException {
-        Object dto = objectMapper.readValue(requestBody, dtoClass);
+        Object dto = generateDTO(requestBody, dtoClass);
         if (!fields.isEmpty()) {
             invokeValidateIfExists(dto, dtoClass, raiseValidationError, fields);
         } else {
             invokeValidateIfExists(dto, dtoClass, raiseValidationError);
         }
-
+        invokePostDeserialization(dto, dtoClass, entityManager);
         return dtoClass.cast(dto);
+    }
+
+    private Object generateDTO(String requestBody, Class<?> dtoClass) throws JsonProcessingException {
+        Object dto = objectMapper.readValue(requestBody, dtoClass);
+        Map<String, FieldMetadata> fieldMetadata = DtoManager.getDtoByClassName(dtoClass);
+        for (String fieldName : fieldMetadata.keySet()) {
+            ReadOnly readOnlyAnnotation = fieldMetadata.get(fieldName).getReadOnly();
+            if (readOnlyAnnotation != null) {
+                try {
+                    fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, null);
+                } catch (Throwable e) {
+                    log.error("{} setter method invocation failed.", fieldName);
+                }
+            }
+        }
+        return dto;
     }
 
     public Set<String> getPresentFields(String requestBody) throws JsonProcessingException {
@@ -97,6 +119,20 @@ public class Serializer {
             throw new RuntimeException("Validation failed", t);
         }
     }
+
+    private void invokePostDeserialization(Object dto, Class<?> dtoClass, EntityManager entityManager) {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodType methodType = MethodType.methodType(void.class, EntityManager.class);
+        try {
+            MethodHandle validateMethodHandle = lookup.findVirtual(dtoClass, "postDeserialization", methodType);
+            validateMethodHandle.invoke(dto, entityManager);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            log.error("postDeserialization method does not exist or is not accessible");
+        } catch (Throwable t) {
+            throw new RuntimeException("postDeserialization method failed", t);
+        }
+    }
+
 
     public ObjectNode serialize(Object object, SerializerConfig serializerConfig) {
         ObjectNode serializedData = serializeObject(object, serializerConfig.getFields(), "");
