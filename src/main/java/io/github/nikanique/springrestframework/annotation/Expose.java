@@ -15,4 +15,8 @@ public @interface Expose {
     String methodName() default "not-provided";
 
     String source() default "not-provided";
+
+    String defaultValue() default "not-provided";
+
+    boolean isRequired() default false;
 }

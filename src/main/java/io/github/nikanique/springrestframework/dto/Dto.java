@@ -3,6 +3,7 @@ package io.github.nikanique.springrestframework.dto;
 
 import io.github.nikanique.springrestframework.annotation.FieldValidation;
 import io.github.nikanique.springrestframework.exceptions.ValidationException;
+import jakarta.persistence.EntityManager;
 
 import java.lang.invoke.MethodHandle;
 import java.text.ParseException;
@@ -104,4 +105,7 @@ public abstract class Dto {
         }
     }
 
+    public void postDeserialization(EntityManager entityManager) {
+        // Default implementation
+    }
 }

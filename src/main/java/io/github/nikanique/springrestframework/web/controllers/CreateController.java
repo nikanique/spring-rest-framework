@@ -15,8 +15,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.io.IOException;
-
 /**
  * This interface provides methods for creating entities.
  *
@@ -39,7 +37,7 @@ public interface CreateController<Model, ID> extends RequestBodyProvider {
     }
 
 
-    default ResponseEntity<ObjectNode> create(BaseGenericController controller, HttpServletRequest request) throws IOException {
+    default ResponseEntity<ObjectNode> create(BaseGenericController controller, HttpServletRequest request) throws Throwable {
         String requestBody = this.getRequestBody(request);
         Object dto = controller.getSerializer().deserialize(requestBody, getCreateRequestBodyDTO(), true);
         Model entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());

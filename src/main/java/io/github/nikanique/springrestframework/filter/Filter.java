@@ -12,17 +12,23 @@ import lombok.experimental.Accessors;
 @Builder
 public class Filter implements Comparable<Filter> {
     private String name;
-
     private String modelFieldName;
     private FilterOperation operation;
     private FieldType fieldType;
-
     private String helpText;
+    private boolean required = false;
 
     public Filter(String name, FilterOperation filterOperation, FieldType fieldType) {
         this.name = name;
         this.operation = filterOperation;
         this.fieldType = fieldType;
+    }
+
+    public Filter(String name, FilterOperation filterOperation, FieldType fieldType, boolean required) {
+        this.name = name;
+        this.operation = filterOperation;
+        this.fieldType = fieldType;
+        this.required = required;
     }
 
     public Filter(String name, FilterOperation filterOperation, FieldType fieldType, String helpText) {
@@ -32,12 +38,27 @@ public class Filter implements Comparable<Filter> {
         this.helpText = helpText;
     }
 
+    public Filter(String name, FilterOperation filterOperation, FieldType fieldType, String helpText, boolean required) {
+        this.name = name;
+        this.operation = filterOperation;
+        this.fieldType = fieldType;
+        this.helpText = helpText;
+        this.required = required;
+    }
+
     public Filter(String name, String modelFieldName, FilterOperation filterOperation, FieldType fieldType) {
         this.name = name;
         this.operation = filterOperation;
         this.fieldType = fieldType;
         this.modelFieldName = modelFieldName;
+    }
 
+    public Filter(String name, String modelFieldName, FilterOperation filterOperation, FieldType fieldType, boolean required) {
+        this.name = name;
+        this.operation = filterOperation;
+        this.fieldType = fieldType;
+        this.modelFieldName = modelFieldName;
+        this.required = required;
     }
 
     public Filter(String name, String modelFieldName, FilterOperation filterOperation, FieldType fieldType, String helpText) {
@@ -46,7 +67,15 @@ public class Filter implements Comparable<Filter> {
         this.fieldType = fieldType;
         this.modelFieldName = modelFieldName;
         this.helpText = helpText;
+    }
 
+    public Filter(String name, String modelFieldName, FilterOperation filterOperation, FieldType fieldType, String helpText, boolean required) {
+        this.name = name;
+        this.operation = filterOperation;
+        this.fieldType = fieldType;
+        this.modelFieldName = modelFieldName;
+        this.helpText = helpText;
+        this.required = required;
     }
 
 

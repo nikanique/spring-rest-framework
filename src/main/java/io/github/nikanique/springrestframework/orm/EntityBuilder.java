@@ -40,14 +40,14 @@ public class EntityBuilder<Model> {
 
 
             // Create an instance of the main entity class
-            Model entity = this.entityClass.newInstance();
+            Model entity = this.entityClass.getDeclaredConstructor().newInstance();
             BeanWrapper entityWrapper = new BeanWrapperImpl(entity);
 
             List<String> ignoreProperties = new ArrayList<>();
             for (String fieldName : fieldMetadata.keySet()) {
                 Object fieldValue = fieldMetadata.get(fieldName).getGetterMethodHandle().invoke(dto);
                 ReadOnly readOnlyAnnotation = fieldMetadata.get(fieldName).getReadOnly();
-                if (readOnlyAnnotation != null) {
+                if (readOnlyAnnotation != null && fieldValue == null) {
                     ignoreProperties.add(fieldName);
                     continue;
                 }

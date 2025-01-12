@@ -32,14 +32,13 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
         implements ApplicationContextAware {
 
     final protected ModelRepository repository;
-
+    private final Map<String, List<String>> endpointsRequiredAuthorities;
     @Getter
     protected Serializer serializer;
     protected ApplicationContext context;
-    private Map<String, List<String>> endpointsRequiredAuthorities;
 
     @Autowired
-    public BaseGenericController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
+    public BaseGenericController(ModelRepository repository) {
         this.repository = repository;
         this.endpointsRequiredAuthorities = new HashMap<>();
         this.configRequiredAuthorities(this.endpointsRequiredAuthorities);
@@ -68,7 +67,7 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
      * }
      * </pre>
      *
-     * @return
+     * @return The class type of the DTO
      */
     protected abstract Class<?> getDTO();
 
@@ -110,8 +109,8 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
         );
     }
 
-    protected void authorizeRequest(String HttpMethod) {
-        List<String> requiredAuthorities = getRequiredAuthorities(HttpMethod);
+    protected void authorizeRequest(HttpServletRequest request) {
+        List<String> requiredAuthorities = getRequiredAuthorities(request.getMethod().toUpperCase());
         if (!hasAuthorities(requiredAuthorities)) {
             throw new UnauthorizedException("You do not have permission to perform this action.");
         }

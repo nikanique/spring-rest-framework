@@ -5,19 +5,25 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import io.github.nikanique.springrestframework.annotation.Expose;
+import io.github.nikanique.springrestframework.annotation.ReadOnly;
 import io.github.nikanique.springrestframework.common.FieldType;
+import io.github.nikanique.springrestframework.dto.DtoManager;
+import io.github.nikanique.springrestframework.dto.FieldMetadata;
+import io.github.nikanique.springrestframework.exceptions.BadRequestException;
 import io.github.nikanique.springrestframework.utilities.MethodReflectionHelper;
 import io.github.nikanique.springrestframework.utilities.StringUtils;
 import io.github.nikanique.springrestframework.utilities.ValueFormatter;
+import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.sql.Timestamp;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -28,21 +34,23 @@ import java.util.*;
 public class Serializer {
 
     private final ObjectMapper objectMapper;
+    private final EntityManager entityManager;
 
     @Autowired
-    public Serializer(ObjectMapper objectMapper) {
+    public Serializer(ObjectMapper objectMapper, EntityManager entityManager) {
         this.objectMapper = objectMapper;
+        this.entityManager = entityManager;
     }
 
-    public Object deserialize(String requestBody, Class<?> dtoClass) throws IOException {
+    public Object deserialize(String requestBody, Class<?> dtoClass) throws Throwable {
         return deserialize(requestBody, dtoClass, false, false);
     }
 
-    public Object deserialize(String requestBody, Class<?> dtoClass, Boolean raiseValidationError) throws IOException {
+    public Object deserialize(String requestBody, Class<?> dtoClass, Boolean raiseValidationError) throws Throwable {
         return deserialize(requestBody, dtoClass, raiseValidationError, false);
     }
 
-    public Object deserialize(String requestBody, Class<?> dtoClass, Boolean raiseValidationError, Boolean partial) throws IOException {
+    public Object deserialize(String requestBody, Class<?> dtoClass, Boolean raiseValidationError, Boolean partial) throws Throwable {
         Set<String> fieldNames = new HashSet<>();
         if (partial) {
             fieldNames = getPresentFields(requestBody);
@@ -51,15 +59,74 @@ public class Serializer {
 
     }
 
-    public Object deserialize(String requestBody, Class<?> dtoClass, Boolean raiseValidationError, Set<String> fields) throws IOException {
-        Object dto = objectMapper.readValue(requestBody, dtoClass);
+    public Object deserialize(String requestBody, Class<?> dtoClass, Boolean raiseValidationError, Set<String> fields) throws Throwable {
+        Object dto = generateDTO(requestBody, dtoClass);
         if (!fields.isEmpty()) {
             invokeValidateIfExists(dto, dtoClass, raiseValidationError, fields);
         } else {
             invokeValidateIfExists(dto, dtoClass, raiseValidationError);
         }
-
+        invokePostDeserialization(dto, dtoClass, entityManager);
         return dtoClass.cast(dto);
+    }
+
+    private Object generateDTO(String requestBody, Class<?> dtoClass) throws Throwable {
+        Object dto = objectMapper.readValue(requestBody, dtoClass);
+        Map<String, FieldMetadata> fieldMetadata = DtoManager.getDtoByClassName(dtoClass);
+        for (String fieldName : fieldMetadata.keySet()) {
+            ReadOnly readOnlyAnnotation = fieldMetadata.get(fieldName).getReadOnly();
+            Expose exposeAnnotation = fieldMetadata.get(fieldName).getExpose();
+            Object fieldValue = fieldMetadata.get(fieldName).getGetterMethodHandle().invoke(dto);
+
+            // Read only field set to null
+            if (readOnlyAnnotation != null && fieldValue != null) {
+                try {
+                    fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, null);
+                } catch (Throwable e) {
+                    log.error("{} setter method invocation failed.", fieldName);
+                }
+            }
+
+
+            // Default value
+            if (readOnlyAnnotation == null && exposeAnnotation != null && fieldValue == null &&
+                    !exposeAnnotation.defaultValue().equals("not-provided")) {
+                Class<?> fieldType = fieldMetadata.get(fieldName).getFieldType();
+                String defaultValue = exposeAnnotation.defaultValue();
+                try {
+                    if (fieldType == Integer.class || fieldType == int.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, Integer.valueOf(defaultValue));
+                    } else if (fieldType == Long.class || fieldType == long.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, Long.valueOf(defaultValue));
+                    } else if (fieldType == Double.class || fieldType == double.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, Double.valueOf(defaultValue));
+                    } else if (fieldType == Float.class || fieldType == float.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, Float.valueOf(defaultValue));
+                    } else if (fieldType == LocalDate.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, LocalDate.parse(defaultValue));
+                    } else if (fieldType == Date.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, java.sql.Date.valueOf(defaultValue));
+                    } else if (fieldType == Timestamp.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, Timestamp.valueOf(defaultValue));
+                    } else if (fieldType == String.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, defaultValue);
+                    } else if (fieldType == Boolean.class || fieldType == boolean.class) {
+                        fieldMetadata.get(fieldName).getSetterMethodHandle().invoke(dto, Boolean.valueOf(defaultValue));
+                    } else {
+                        log.error("{} field type is not supported for default value.", fieldName);
+                    }
+                } catch (Throwable e) {
+                    log.error("{} default value could not be set.", fieldName);
+                }
+            }
+
+            // Required check
+
+            if (exposeAnnotation != null && fieldValue == null && exposeAnnotation.isRequired()) {
+                throw new BadRequestException(fieldName, "Field is required.");
+            }
+        }
+        return dto;
     }
 
     public Set<String> getPresentFields(String requestBody) throws JsonProcessingException {
@@ -97,6 +164,20 @@ public class Serializer {
             throw new RuntimeException("Validation failed", t);
         }
     }
+
+    private void invokePostDeserialization(Object dto, Class<?> dtoClass, EntityManager entityManager) {
+        MethodHandles.Lookup lookup = MethodHandles.lookup();
+        MethodType methodType = MethodType.methodType(void.class, EntityManager.class);
+        try {
+            MethodHandle validateMethodHandle = lookup.findVirtual(dtoClass, "postDeserialization", methodType);
+            validateMethodHandle.invoke(dto, entityManager);
+        } catch (NoSuchMethodException | IllegalAccessException e) {
+            log.error("postDeserialization method does not exist or is not accessible");
+        } catch (Throwable t) {
+            throw new RuntimeException("postDeserialization method failed", t);
+        }
+    }
+
 
     public ObjectNode serialize(Object object, SerializerConfig serializerConfig) {
         ObjectNode serializedData = serializeObject(object, serializerConfig.getFields(), "");

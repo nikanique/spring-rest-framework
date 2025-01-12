@@ -14,8 +14,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.method.HandlerMethod;
 
-import java.io.IOException;
-
 /**
  * The GenericCreateController class is a generic controller designed for use in Spring Boot applications for creating model's records.
  * It provides a common implementation for creating records. It exposes endpoint with POST method.
@@ -73,8 +71,8 @@ public abstract class GenericCreateController<Model, ID, ModelRepository extends
     }
 
     @PostMapping("/")
-    public ResponseEntity<ObjectNode> post(HttpServletRequest request) throws IOException {
-        this.authorizeRequest("POST");
+    public ResponseEntity<ObjectNode> post(HttpServletRequest request) throws Throwable {
+        this.authorizeRequest(request);
         return this.create(this, request);
     }
 

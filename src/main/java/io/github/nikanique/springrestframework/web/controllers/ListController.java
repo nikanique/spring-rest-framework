@@ -72,17 +72,21 @@ public interface ListController<Model> {
                 String toParameterName = filter.getName() + "To";
                 operation.addParametersItem(new Parameter().name(fromParameterName).in("query")
                         .schema(new Schema().type(filter.getFieldType().toString().toLowerCase()))
+                        .required(filter.isRequired())
                         .description(filter.getHelpText() == null ? "Filter operator :" + FilterOperation.GREATER_OR_EQUAL.name() : filter.getHelpText()));
                 operation.addParametersItem(new Parameter().name(toParameterName).in("query")
                         .schema(new Schema().type(filter.getFieldType().toString().toLowerCase()))
+                        .required(filter.isRequired())
                         .description(filter.getHelpText() == null ? "Filter operator :" + FilterOperation.LESS_OR_EQUAL.name() : filter.getHelpText()));
             } else if (filter.getOperation().equals(FilterOperation.IN)) {
                 operation.addParametersItem(new Parameter().name(filter.getName()).in("query")
                         .schema(new Schema().type("string"))
+                        .required(filter.isRequired())
                         .description(filter.getHelpText() == null ? "Filter operator :" + filter.getOperation().name() : filter.getHelpText()));
             } else {
                 operation.addParametersItem(new Parameter().name(filter.getName()).in("query")
                         .schema(new Schema().type(filter.getFieldType().toString().toLowerCase()))
+                        .required(filter.isRequired())
                         .description(filter.getHelpText() == null ? "Filter operator :" + filter.getOperation().name() : filter.getHelpText()));
             }
         }

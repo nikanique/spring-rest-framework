@@ -17,8 +17,9 @@ public class FieldMetadata {
     private final WriteOnly writeOnly;
     private final ReferencedModel referencedModel;
     private final MethodHandle getterMethodHandle;
+    private final MethodHandle setterMethodHandle;
 
-    public FieldMetadata(Field field, Class<?> fieldType, FieldValidation validation, Expose expose, ReadOnly readOnly, WriteOnly writeOnly, ReferencedModel referencedModel, MethodHandle getterMethodHandle) {
+    public FieldMetadata(Field field, Class<?> fieldType, FieldValidation validation, Expose expose, ReadOnly readOnly, WriteOnly writeOnly, ReferencedModel referencedModel, MethodHandle getterMethodHandle, MethodHandle setterMethodHandle) {
         this.field = field;
         this.fieldType = fieldType;
         this.validation = validation;
@@ -27,5 +28,6 @@ public class FieldMetadata {
         this.writeOnly = writeOnly;
         this.referencedModel = referencedModel;
         this.getterMethodHandle = getterMethodHandle;
+        this.setterMethodHandle = setterMethodHandle;
     }
 }
