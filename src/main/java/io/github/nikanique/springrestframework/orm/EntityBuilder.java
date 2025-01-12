@@ -40,7 +40,7 @@ public class EntityBuilder<Model> {
 
 
             // Create an instance of the main entity class
-            Model entity = this.entityClass.newInstance();
+            Model entity = this.entityClass.getDeclaredConstructor().newInstance();
             BeanWrapper entityWrapper = new BeanWrapperImpl(entity);
 
             List<String> ignoreProperties = new ArrayList<>();
