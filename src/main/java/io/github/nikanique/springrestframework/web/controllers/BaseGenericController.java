@@ -38,7 +38,7 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
     protected ApplicationContext context;
 
     @Autowired
-    public BaseGenericController(@SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection") ModelRepository repository) {
+    public BaseGenericController(ModelRepository repository) {
         this.repository = repository;
         this.endpointsRequiredAuthorities = new HashMap<>();
         this.configRequiredAuthorities(this.endpointsRequiredAuthorities);
@@ -67,7 +67,7 @@ public abstract class BaseGenericController<Model, ID, ModelRepository extends J
      * }
      * </pre>
      *
-     * @return
+     * @return The class type of the DTO
      */
     protected abstract Class<?> getDTO();
 
