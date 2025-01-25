@@ -33,10 +33,14 @@ public interface DeleteController<Model, ID> {
         // Retrieve the entity using specification
         Optional<Object> optionalEntity = this.getQueryService().getObject(searchCriteriaList);
 
-        if (!optionalEntity.isPresent()) {
+        if (optionalEntity.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
+        return performDelete(optionalEntity);
+    }
+
+    default ResponseEntity<Void> performDelete(Optional<Object> optionalEntity) {
         this.getCommandService().delete((Model) optionalEntity.get());
         return ResponseEntity.noContent().build();
     }

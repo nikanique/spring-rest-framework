@@ -53,7 +53,11 @@ public interface UpdateController<Model, ID> extends RequestBodyProvider {
         String requestBody = this.getRequestBody(request);
         Object dto = controller.getSerializer().deserialize(requestBody, this.getUpdateRequestBodyDTO(), true);
 
-        // Partially update the entity fields except the lookup field
+        return performUpdate(controller, optionalEntity, dto);
+    }
+
+    default ResponseEntity<ObjectNode> performUpdate(BaseGenericController controller, Optional<Object> optionalEntity, Object dto) throws Throwable {
+        // Update the entity fields except the lookup field
         Model entityFromDB = this.getCommandService().update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
 
         // Return the updated entity
@@ -82,6 +86,10 @@ public interface UpdateController<Model, ID> extends RequestBodyProvider {
         Set<String> presentFields = controller.getSerializer().getPresentFields(requestBody);
         Object dto = controller.getSerializer().deserialize(requestBody, this.getUpdateRequestBodyDTO(), true, presentFields);
 
+        return performPartialUpdate(controller, optionalEntity, dto, presentFields);
+    }
+
+    default ResponseEntity<ObjectNode> performPartialUpdate(BaseGenericController controller, Optional<Object> optionalEntity, Object dto, Set<String> presentFields) throws Throwable {
         // Partially update the entity fields except the lookup field
         Model entityFromDB = this.getCommandService().update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
 
