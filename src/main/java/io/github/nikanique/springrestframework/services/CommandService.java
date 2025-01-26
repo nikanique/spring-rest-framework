@@ -3,6 +3,7 @@ package io.github.nikanique.springrestframework.services;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.nikanique.springrestframework.annotation.Expose;
+import io.github.nikanique.springrestframework.annotation.ReadOnly;
 import io.github.nikanique.springrestframework.annotation.ReferencedModel;
 import io.github.nikanique.springrestframework.dto.DtoManager;
 import io.github.nikanique.springrestframework.dto.FieldMetadata;
@@ -114,12 +115,19 @@ public class CommandService<Model, ID> {
         BeanWrapper entityWrapper = new BeanWrapperImpl(entityFromDB);
         Map<String, FieldMetadata> fieldsMetadata = DtoManager.getDtoByClassName(dtoClass);
         for (Map.Entry<String, FieldMetadata> entry : fieldsMetadata.entrySet()) {
-            if (entry.getValue().getGetterMethodHandle() == null || !fields.contains(entry.getKey()) || entry.getKey().equals(lookupFieldName)) {
+            String fieldName = entry.getKey();
+            FieldMetadata fieldMetadata = entry.getValue();
+            ReadOnly readOnly = fieldMetadata.getReadOnly();
+            Object fieldValue = fieldMetadata.getGetterMethodHandle().invoke(dto);
+            if (entry.getValue().getGetterMethodHandle() == null ||
+                    (!fields.contains(entry.getKey()) && fieldValue == null) ||
+                    entry.getKey().equals(lookupFieldName) ||
+                    (readOnly != null && fieldValue == null)
+            ) {
                 continue;
             }
             try {
-                String fieldName = entry.getKey();
-                FieldMetadata fieldMetadata = entry.getValue();
+
                 Expose exposeAnnotation = fieldMetadata.getExpose();
                 ReferencedModel referenceModelAnnotation = fieldMetadata.getReferencedModel();
                 String sourceFieldName = fieldName;

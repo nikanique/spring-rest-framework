@@ -40,6 +40,10 @@ public interface CreateController<Model, ID> extends RequestBodyProvider {
     default ResponseEntity<ObjectNode> create(BaseGenericController controller, HttpServletRequest request) throws Throwable {
         String requestBody = this.getRequestBody(request);
         Object dto = controller.getSerializer().deserialize(requestBody, getCreateRequestBodyDTO(), true);
+        return performCreate(controller, dto);
+    }
+
+    default ResponseEntity<ObjectNode> performCreate(BaseGenericController controller, Object dto) {
         Model entity = this.getEntityHelper().fromDto(dto, this.getCreateRequestBodyDTO());
         entity = getCommandService().create(entity);
         return ResponseEntity.status(HttpStatus.CREATED).body(

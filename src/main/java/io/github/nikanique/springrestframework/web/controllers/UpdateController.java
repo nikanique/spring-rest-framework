@@ -46,15 +46,19 @@ public interface UpdateController<Model, ID> extends RequestBodyProvider {
 
         // Retrieve the entity using specification
         Optional<Object> optionalEntity = getObject(searchCriteriaList);
-        if (!optionalEntity.isPresent()) {
+        if (optionalEntity.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
         String requestBody = this.getRequestBody(request);
         Object dto = controller.getSerializer().deserialize(requestBody, this.getUpdateRequestBodyDTO(), true);
 
-        // Partially update the entity fields except the lookup field
-        Model entityFromDB = this.getCommandService().update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
+        return performUpdate(controller, optionalEntity.get(), dto);
+    }
+
+    default ResponseEntity<ObjectNode> performUpdate(BaseGenericController controller, Object entity, Object dto) throws Throwable {
+        // Update the entity fields except the lookup field
+        Model entityFromDB = this.getCommandService().update((Model) entity, dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO());
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
@@ -74,7 +78,7 @@ public interface UpdateController<Model, ID> extends RequestBodyProvider {
 
         // Retrieve the entity using specification
         Optional<Object> optionalEntity = getObject(searchCriteriaList);
-        if (!optionalEntity.isPresent()) {
+        if (optionalEntity.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
 
@@ -82,8 +86,12 @@ public interface UpdateController<Model, ID> extends RequestBodyProvider {
         Set<String> presentFields = controller.getSerializer().getPresentFields(requestBody);
         Object dto = controller.getSerializer().deserialize(requestBody, this.getUpdateRequestBodyDTO(), true, presentFields);
 
+        return performPartialUpdate(controller, optionalEntity.get(), dto, presentFields);
+    }
+
+    default ResponseEntity<ObjectNode> performPartialUpdate(BaseGenericController controller, Object entity, Object dto, Set<String> presentFields) throws Throwable {
         // Partially update the entity fields except the lookup field
-        Model entityFromDB = this.getCommandService().update((Model) optionalEntity.get(), dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
+        Model entityFromDB = this.getCommandService().update((Model) entity, dto, this.getLookupFilter().getName(), this.getUpdateRequestBodyDTO(), presentFields);
 
         // Return the updated entity
         return ResponseEntity.status(HttpStatus.OK).body(
