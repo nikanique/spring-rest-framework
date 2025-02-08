@@ -34,7 +34,7 @@ To install the Spring REST Framework, include the following dependencies in your
     <dependency>
         <groupId>io.github.nikanique</groupId>
         <artifactId>spring-rest-framework</artifactId>
-        <version>2.4.0</version>
+        <version>{latest version}</version>
     </dependency>
 </dependencies>
 ```
@@ -190,6 +190,14 @@ To start using the library, follow these steps:
 4. Run your application, and enjoy your APIs:
 
 ![spring-rest-framework-api.png](smaple_images/spring-rest-framework-api.png)
+
+## Architecture
+
+The framework is built on top of Spring Boot, Spring MVC, Spring Data JPA and Spring Security, providing an robust
+suite of tools for developing REST APIs. The core components are as follows:
+<p align="center">
+<img src="smaple_images/spring-rest-framework-architecture.jpg" alt="Spring REST Framework Architecture" width="90%">
+</p>
 
 ## Documentation
 
