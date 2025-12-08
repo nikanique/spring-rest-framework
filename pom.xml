@@ -6,21 +6,21 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>3.0.0</version>
-        <relativePath/> <!-- lookup parent from repository -->
-    </parent>
+        <relativePath/> </parent>
+    
     <groupId>io.github.nikanique</groupId>
     <artifactId>spring-rest-framework</artifactId>
     <version>2.4.1</version>
     <packaging>jar</packaging>
+    
     <name>spring-rest-framework</name>
     <description>
         Spring REST Framework (SRF) is a powerful library for Spring applications that brings the simplicity
         and flexibility of Django's REST Framework to Spring. SRF streamlines API development with powerful
         serialization, flexible filters, and seamless integration.
     </description>
-    <url>
-
-    </url>
+    <url>https://github.com/nikanique/spring-rest-framework</url>
+    
     <licenses>
         <license>
             <name>BSD License</name>
@@ -28,17 +28,25 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    
     <developers>
-        <developer/>
+        <developer>
+            <id>nikanique</id>
+            <name>Nikanique</name>
+            <email>nikanique.org@gmail.com</email>
+        </developer> 
     </developers>
+    
     <scm>
         <connection>scm:git:git@github.com:nikanique/spring-rest-framework.git</connection>
         <developerConnection>scm:git:ssh://github.com:nikanique/spring-rest-framework.git</developerConnection>
         <url>https://github.com/nikanique/spring-rest-framework</url>
     </scm>
+    
     <properties>
         <java.version>17</java.version>
     </properties>
+    
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -81,11 +89,25 @@
             <version>1.12.8</version>
         </dependency>
     </dependencies>
+    
     <build>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>3.2.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-sources</id>
+                        <goals>
+                            <goal>jar-no-fork</goal>
+                        </goals>
+                    </execution>
+                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -99,22 +121,6 @@
                         </goals>
                     </execution>
                 </executions>
-                <configuration>
-                    <javadocExecutable>${java.home}/bin/javadoc</javadocExecutable>
-                </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-source-plugin</artifactId>
-                <version>3.2.1</version>
-                <executions>
-                    <execution>
-                        <id>attach-sources</id>
-                        <goals>
-                            <goal>jar</goal>
-                        </goals>
-                    </execution>
-                </executions>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -123,14 +129,15 @@
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
+                        <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
                         </goals>
                         <configuration>
-                            <arguments>
-                                <argument>--batch</argument>
-                                <argument>--yes</argument>
-                            </arguments>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
                         </configuration>
                     </execution>
                 </executions>
@@ -142,23 +149,17 @@
                 <extensions>true</extensions>
                 <configuration>
                     <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
                 </configuration>
             </plugin>
         </plugins>
     </build>
-    <profiles>
-        <profile>
-            <id>release</id>
-            <activation>
-                <property>
-                    <name>performRelease</name>
-                    <value>true</value>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>
